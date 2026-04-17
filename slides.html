@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Series Foundation Models</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<style>
+  :root {
+    --r-heading-color: #1a1a2e;
+    --r-main-color: #333;
+    --r-link-color: #3498db;
+    --accent: #e74c3c;
+    --blue: #3498db;
+    --green: #2ecc71;
+    --orange: #f39c12;
+    --dark: #1a1a2e;
+  }
+  .reveal { font-size: 32px; }
+  .reveal h1 { font-size: 2.2em; color: var(--dark); }
+  .reveal h2 { font-size: 1.6em; color: var(--dark); border-bottom: 3px solid var(--accent); padding-bottom: 0.2em; display: inline-block; }
+  .reveal h3 { font-size: 1.2em; color: #555; }
+  .reveal ul { text-align: left; }
+  .reveal li { margin-bottom: 0.4em; }
+  .reveal .subtitle { color: #666; font-size: 0.7em; margin-top: 0.5em; }
+  .reveal .highlight { color: var(--accent); font-weight: bold; }
+  .reveal .blue { color: var(--blue); }
+  .reveal .green { color: var(--green); }
+  .reveal .orange { color: var(--orange); }
+
+  /* Timeline */
+  .timeline {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin: 1.2em 0; flex-wrap: wrap;
+  }
+  .timeline .node {
+    background: var(--dark); color: white; padding: 0.3em 0.7em;
+    border-radius: 8px; font-size: 0.55em; text-align: center; white-space: nowrap;
+  }
+  .timeline .arrow { font-size: 1.2em; color: #aaa; margin: 0 0.15em; }
+  .timeline .node.active { background: var(--accent); }
+
+  /* Comparison table */
+  .reveal table { margin: 0.5em auto; font-size: 0.65em; border-collapse: collapse; }
+  .reveal table th { background: var(--dark); color: white; padding: 0.4em 0.6em; }
+  .reveal table td { padding: 0.35em 0.6em; border-bottom: 1px solid #ddd; }
+  .reveal table tr:nth-child(even) { background: #f8f9fa; }
+
+  /* Pain point boxes */
+  .pain { background: #fff3f3; border-left: 4px solid var(--accent); padding: 0.4em 0.8em; margin: 0.4em 0; text-align: left; font-size: 0.8em; border-radius: 0 6px 6px 0; }
+  .win { background: #f0fff4; border-left: 4px solid var(--green); padding: 0.4em 0.8em; margin: 0.4em 0; text-align: left; font-size: 0.8em; border-radius: 0 6px 6px 0; }
+
+  /* Diagram placeholder */
+  .diagram-idea {
+    background: #f0f4ff; border: 2px dashed #99b; border-radius: 12px;
+    padding: 1em; margin: 0.8em auto; max-width: 80%; font-size: 0.7em;
+    color: #557; text-align: center; font-style: italic;
+  }
+
+  /* Side-by-side columns */
+  .columns { display: flex; gap: 1.5em; align-items: flex-start; }
+  .columns .col { flex: 1; }
+
+  /* Code-like block */
+  .codeblock {
+    background: #1e1e2e; color: #cdd6f4; padding: 0.6em 0.8em;
+    border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.55em;
+    text-align: left; margin: 0.5em auto; max-width: 90%;
+    white-space: pre-wrap; line-height: 1.4;
+  }
+  .codeblock .comment { color: #6c7086; }
+  .codeblock .kw { color: #cba6f7; }
+  .codeblock .str { color: #a6e3a1; }
+  .codeblock .fn { color: #89b4fa; }
+
+  /* Quote */
+  .reveal blockquote {
+    background: #f8f9fa; border-left: 4px solid var(--blue);
+    padding: 0.6em 1em; font-style: italic; font-size: 0.85em;
+    margin: 0.8em auto; width: 85%; text-align: left;
+  }
+
+  /* Analogy box */
+  .analogy {
+    background: #fffbeb; border: 2px solid var(--orange); border-radius: 10px;
+    padding: 0.6em 1em; margin: 0.6em auto; font-size: 0.8em; text-align: left;
+  }
+
+  /* Small text */
+  .small { font-size: 0.6em; color: #888; }
+  .medium { font-size: 0.75em; }
+
+  /* Metric boxes */
+  .metric-row { display: flex; gap: 1em; justify-content: center; margin: 0.5em 0; }
+  .metric-box {
+    background: #f8f9fa; border-radius: 10px; padding: 0.5em 1em;
+    text-align: center; min-width: 150px;
+  }
+  .metric-box .value { font-size: 1.8em; font-weight: bold; }
+  .metric-box .label { font-size: 0.6em; color: #666; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- TITLE -->
+<!-- ============================================================ -->
+<section>
+  <h1>Time Series<br>Foundation Models</h1>
+  <p class="subtitle">The "ChatGPT moment" for forecasting?</p>
+  <br>
+  <p style="font-size:0.6em; color:#888;">Alessandro Romano</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- ABOUT ME -->
+<!-- ============================================================ -->
+<section>
+  <div style="display:flex; flex-direction:column; align-items:center;">
+
+    <!-- Photo -->
+    <img src="headshot.jpg" alt="Alessandro Romano"
+         style="width:150px; height:150px; border-radius:50%; object-fit:cover;
+                box-shadow:0 4px 20px rgba(108,92,231,0.2);">
+
+    <!-- Name -->
+    <h2 style="margin:0.4em 0 0; font-size:1.5em;">Alessandro Romano</h2>
+    <p style="font-size:0.65em; color:#888; margin:0.1em 0 0; letter-spacing:0.05em;">
+      Data Scientist &bull; Musician &bull; Public Speaker
+    </p>
+
+    <!-- One-liner bio -->
+    <p style="font-size:0.68em; color:#555; margin-top:0.8em; max-width:75%; text-align:center; line-height:1.6;">
+      Senior Data Scientist at <span style="color:var(--dark); font-weight:600;">Kuehne+Nagel</span> in Hamburg.
+      7+ years building ML &amp; LLM solutions for pricing and forecasting.
+    </p>
+
+    <!-- Minimal career + education on one line -->
+    <div style="display:flex; align-items:center; gap:2em; margin-top:1em; font-size:0.52em; color:#999;">
+      <span><i class="fas fa-graduation-cap" style="color:var(--blue); margin-right:0.3em;"></i>M.Sc. Data Science, Pisa</span>
+      <span style="color:#ddd;">|</span>
+      <span>Cargonexx &rarr; FREE NOW &rarr; <span style="color:var(--dark); font-weight:600;">Kuehne+Nagel</span></span>
+    </div>
+
+    <!-- Website -->
+    <p style="margin-top:1em; font-size:0.55em; color:var(--blue);">
+      <i class="fas fa-globe" style="margin-right:0.3em;"></i> www.aromano.dev
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- AGENDA -->
+<!-- ============================================================ -->
+<section>
+  <h2>Agenda</h2>
+  <div style="display:flex; flex-direction:column; gap:0.45em; max-width:78%; margin:0.8em auto; font-size:0.72em;">
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--blue);">
+      <span style="font-weight:bold; color:var(--blue); min-width:1.5em;">1</span>
+      <span>Time Series Is Everywhere</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--blue);">
+      <span style="font-weight:bold; color:var(--blue); min-width:1.5em;">2</span>
+      <span>How We Do Time Series Today</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--blue);">
+      <span style="font-weight:bold; color:var(--blue); min-width:1.5em;">3</span>
+      <span>The Transformer Revolution</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#fff3f3; border-radius:8px; border-left:4px solid var(--accent);">
+      <span style="font-weight:bold; color:var(--accent); min-width:1.5em;">4</span>
+      <span style="font-weight:bold;">Foundation Models for Time Series</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f0fff4; border-radius:8px; border-left:4px solid var(--green);">
+      <span style="font-weight:bold; color:var(--green); min-width:1.5em;">5</span>
+      <span>Live Demo <span style="color:#888; font-size:0.85em;">&mdash; ARIMA vs Chronos vs TimesFM</span></span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--blue);">
+      <span style="font-weight:bold; color:var(--blue); min-width:1.5em;">6</span>
+      <span>Challenges &amp; When to Use</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:0.8em; padding:0.4em 0.8em; background:#f8f9fa; border-radius:8px; border-left:4px solid var(--blue);">
+      <span style="font-weight:bold; color:var(--blue); min-width:1.5em;">7</span>
+      <span>Takeaways &amp; Q&amp;A</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- 1. TIME SERIES IS EVERYWHERE -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>Time Series Is Everywhere</h2>
+  </section>
+
+  <section>
+    <h3>You already work with time series</h3>
+    <p style="font-size:0.75em;">Any measurement recorded over time is a time series. They show up in virtually every industry:</p>
+
+    <svg viewBox="0 0 920 360" style="max-width:92%; margin:0.2em auto; display:block;">
+      <!-- Row 1 -->
+      <!-- Finance -->
+      <rect x="10" y="10" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="30,110 55,95 80,100 105,70 130,80 155,50 180,60 200,45" fill="none" stroke="#3498db" stroke-width="2.5"/>
+      <polyline points="30,115 55,108 80,112 105,90 130,95 155,75 180,82 200,70" fill="none" stroke="#3498db" stroke-width="1.2" opacity="0.3"/>
+      <text x="115" y="145" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Finance</text>
+      <text x="115" y="160" text-anchor="middle" font-size="10" fill="#888">stock prices, risk metrics</text>
+
+      <!-- Climate -->
+      <rect x="240" y="10" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <path d="M260,100 C280,70 300,80 320,60 C340,80 360,50 380,75 C400,55 420,70 430,65" fill="none" stroke="#e74c3c" stroke-width="2.5"/>
+      <line x1="260" y1="105" x2="430" y2="80" stroke="#e74c3c" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+      <text x="345" y="145" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Climate</text>
+      <text x="345" y="160" text-anchor="middle" font-size="10" fill="#888">temperature, CO2, precipitation</text>
+
+      <!-- IoT -->
+      <rect x="470" y="10" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="490,85 505,82 520,88 535,80 550,83 565,78 580,95 595,60 610,82 625,85 640,80 660,83" fill="none" stroke="#2ecc71" stroke-width="2"/>
+      <circle cx="595" cy="60" r="5" fill="none" stroke="#e74c3c" stroke-width="2"/>
+      <text x="575" y="145" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">IoT Sensors</text>
+      <text x="575" y="160" text-anchor="middle" font-size="10" fill="#888">telemetry, device readings</text>
+
+      <!-- Energy -->
+      <rect x="700" y="10" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <path d="M720,100 C735,80 750,85 765,65 C780,85 795,70 810,90 C825,70 840,75 855,55 C870,75 885,65 890,80" fill="none" stroke="#f39c12" stroke-width="2.5"/>
+      <rect x="720" y="40" width="170" height="50" rx="4" fill="#f39c12" opacity="0.06"/>
+      <text x="805" y="145" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Energy</text>
+      <text x="805" y="160" text-anchor="middle" font-size="10" fill="#888">grid load, demand, solar output</text>
+
+      <!-- Row 2 -->
+      <!-- Healthcare -->
+      <rect x="10" y="190" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="30,265 40,260 45,270 50,250 55,270 60,255 65,275 70,245 75,275 80,255 85,270 90,250 95,270 100,260 105,265 110,258 115,268 120,248 125,268 130,258 135,265 140,255 145,270 150,250 155,268 160,260 165,265 170,255 175,270 180,250 185,268 190,260 195,265 200,255" fill="none" stroke="#9b59b6" stroke-width="1.8"/>
+      <text x="115" y="325" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Healthcare</text>
+      <text x="115" y="340" text-anchor="middle" font-size="10" fill="#888">ECG, SpO2, heart rate</text>
+
+      <!-- Retail -->
+      <rect x="240" y="190" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <rect x="270" y="290" width="20" height="20" rx="2" fill="#3498db" opacity="0.5"/>
+      <rect x="298" y="275" width="20" height="35" rx="2" fill="#3498db" opacity="0.6"/>
+      <rect x="326" y="260" width="20" height="50" rx="2" fill="#3498db" opacity="0.7"/>
+      <rect x="354" y="240" width="20" height="70" rx="2" fill="#3498db" opacity="0.8"/>
+      <rect x="382" y="285" width="20" height="25" rx="2" fill="#3498db" opacity="0.5"/>
+      <rect x="410" y="265" width="20" height="45" rx="2" fill="#3498db" opacity="0.7"/>
+      <text x="345" y="325" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Retail</text>
+      <text x="345" y="340" text-anchor="middle" font-size="10" fill="#888">sales, inventory, foot traffic</text>
+
+      <!-- Tech -->
+      <rect x="470" y="190" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="490,275 510,270 530,272 550,268 570,290 575,310 580,280 600,270 620,273 640,265 660,268" fill="none" stroke="#1abc9c" stroke-width="2.2"/>
+      <line x1="490" y1="310" x2="660" y2="310" stroke="#eee" stroke-width="1"/>
+      <line x1="490" y1="290" x2="660" y2="290" stroke="#eee" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="575" y="325" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Tech</text>
+      <text x="575" y="340" text-anchor="middle" font-size="10" fill="#888">web traffic, API latency, errors</text>
+
+      <!-- Manufacturing -->
+      <rect x="700" y="190" width="210" height="155" rx="10" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <path d="M720,270 C740,268 760,272 780,265 C800,268 820,270 840,260 C860,265 880,262 890,268" fill="none" stroke="#e67e22" stroke-width="2"/>
+      <line x1="720" y1="255" x2="890" y2="255" stroke="#e74c3c" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+      <line x1="720" y1="280" x2="890" y2="280" stroke="#e74c3c" stroke-width="1" stroke-dasharray="4,3" opacity="0.5"/>
+      <text x="720" y="250" font-size="8" fill="#e74c3c" opacity="0.6">UCL</text>
+      <text x="720" y="290" font-size="8" fill="#e74c3c" opacity="0.6">LCL</text>
+      <text x="805" y="325" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">Manufacturing</text>
+      <text x="805" y="340" text-anchor="middle" font-size="10" fill="#888">quality control, vibration, yield</text>
+    </svg>
+
+    <p style="font-size:0.7em; color:#555; margin-top:0.1em;">If your data has a timestamp column, you're doing time series analysis &mdash; whether you call it that or not.</p>
+  </section>
+
+  <section>
+    <h3>What do we do with them?</h3>
+    <p style="font-size:0.8em;">Four core tasks show up again and again across domains:</p>
+    <ul>
+      <li><strong>Forecasting</strong> &mdash; predict future values (e.g. next week's energy demand, next quarter's revenue)</li>
+      <li><strong>Anomaly detection</strong> &mdash; spot outliers in real time (e.g. fraud, equipment failure, network intrusion)</li>
+      <li><strong>Classification</strong> &mdash; label a pattern (e.g. is this ECG normal or arrhythmic? is this sensor vibration a bearing fault?)</li>
+      <li><strong>Imputation</strong> &mdash; fill in missing data (e.g. sensor went offline for 2 hours, reconstruct what happened)</li>
+    </ul>
+    <p class="fragment" style="margin-top:0.8em; font-size:0.85em;">Today, each of these tasks &mdash; for each dataset &mdash; requires <span class="highlight">building and training a separate model from scratch</span>. That's about to change.</p>
+  </section>
+
+  <section>
+    <h3>Key properties of time series</h3>
+    <p style="font-size:0.7em; color:#666; margin-bottom:0.3em;">Before modelling, you need to understand the structure of your data.</p>
+
+    <svg viewBox="0 0 920 470" style="max-width:92%; margin:0 auto; display:block;">
+
+      <!-- Stationarity -->
+      <rect x="10" y="5" width="440" height="220" rx="12" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <text x="230" y="34" font-size="20" font-weight="bold" fill="#1a1a2e" text-anchor="middle">Stationarity</text>
+      <!-- Stationary line (green) -->
+      <polyline points="40,100 70,90 100,107 130,95 160,103 190,92 220,100 250,96 280,105 310,93 340,101 370,97 400,92" fill="none" stroke="#2ecc71" stroke-width="3"/>
+      <line x1="40" y1="98" x2="400" y2="98" stroke="#2ecc71" stroke-width="1.2" stroke-dasharray="5,4" opacity="0.5"/>
+      <text x="50" y="78" font-size="13" fill="#2ecc71" font-weight="bold">stationary</text>
+      <!-- Non-stationary line (red) -->
+      <polyline points="40,155 70,149 100,144 130,135 160,139 190,127 220,119 250,111 280,100 310,90 340,81 370,73 400,61" fill="none" stroke="#e74c3c" stroke-width="3"/>
+      <text x="50" y="170" font-size="13" fill="#e74c3c" font-weight="bold">non-stationary</text>
+      <text x="230" y="194" font-size="15" fill="#555" text-anchor="middle">The data "behaves the same" no matter when you look at it.</text>
+      <text x="230" y="214" font-size="12" fill="#999" text-anchor="middle" font-style="italic">e.g. room temperature with AC on vs. a stock price drifting up</text>
+
+      <!-- Autocorrelation -->
+      <rect x="470" y="5" width="440" height="220" rx="12" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <text x="690" y="34" font-size="20" font-weight="bold" fill="#1a1a2e" text-anchor="middle">Autocorrelation</text>
+      <!-- ACF bars -->
+      <rect x="530" y="58" width="26" height="95" rx="3" fill="#3498db" opacity="0.9"/>
+      <rect x="566" y="72" width="26" height="81" rx="3" fill="#3498db" opacity="0.8"/>
+      <rect x="602" y="86" width="26" height="67" rx="3" fill="#3498db" opacity="0.7"/>
+      <rect x="638" y="98" width="26" height="55" rx="3" fill="#3498db" opacity="0.6"/>
+      <rect x="674" y="108" width="26" height="45" rx="3" fill="#3498db" opacity="0.5"/>
+      <rect x="710" y="118" width="26" height="35" rx="3" fill="#3498db" opacity="0.4"/>
+      <rect x="746" y="128" width="26" height="25" rx="3" fill="#3498db" opacity="0.3"/>
+      <rect x="782" y="137" width="26" height="16" rx="3" fill="#3498db" opacity="0.2"/>
+      <line x1="525" y1="153" x2="815" y2="153" stroke="#aaa" stroke-width="1.2"/>
+      <text x="540" y="168" font-size="12" fill="#aaa" text-anchor="middle">lag 1</text>
+      <text x="795" y="168" font-size="12" fill="#aaa" text-anchor="middle">lag 8</text>
+      <text x="690" y="194" font-size="15" fill="#555" text-anchor="middle">Today's value depends on its own past values.</text>
+      <text x="690" y="214" font-size="12" fill="#999" text-anchor="middle" font-style="italic">e.g. if today is hot, tomorrow is likely hot too</text>
+
+      <!-- Seasonality -->
+      <rect x="10" y="245" width="440" height="220" rx="12" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <text x="230" y="274" font-size="20" font-weight="bold" fill="#1a1a2e" text-anchor="middle">Seasonality</text>
+      <path d="M40,350 C70,320 100,320 130,350 C160,380 190,380 220,350 C250,320 280,320 310,350 C340,380 370,390 400,350 C415,332 425,325 430,320" fill="none" stroke="#3498db" stroke-width="3"/>
+      <!-- Period markers -->
+      <line x1="40" y1="370" x2="220" y2="370" stroke="#f39c12" stroke-width="2"/>
+      <line x1="40" y1="366" x2="40" y2="374" stroke="#f39c12" stroke-width="2"/>
+      <line x1="220" y1="366" x2="220" y2="374" stroke="#f39c12" stroke-width="2"/>
+      <text x="130" y="388" text-anchor="middle" font-size="13" fill="#f39c12" font-weight="bold">1 period</text>
+      <text x="230" y="434" font-size="15" fill="#555" text-anchor="middle">Repeating patterns at fixed intervals (daily, weekly, yearly).</text>
+      <text x="230" y="454" font-size="12" fill="#999" text-anchor="middle" font-style="italic">e.g. ice cream sales spike every summer</text>
+
+      <!-- Trend -->
+      <rect x="470" y="245" width="440" height="220" rx="12" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <text x="690" y="274" font-size="20" font-weight="bold" fill="#1a1a2e" text-anchor="middle">Trend</text>
+      <!-- Noisy data -->
+      <polyline points="510,395 535,385 560,370 585,378 610,360 635,373 660,345 685,357 710,330 735,343 760,318 785,330 810,310 835,303 860,293 885,285" fill="none" stroke="#9b59b6" stroke-width="3"/>
+      <!-- Trend line -->
+      <line x1="510" y1="400" x2="885" y2="283" stroke="#e74c3c" stroke-width="2.5" stroke-dasharray="8,4"/>
+      <text x="690" y="434" font-size="15" fill="#555" text-anchor="middle">Long-term upward or downward direction in the data.</text>
+      <text x="690" y="454" font-size="12" fill="#999" text-anchor="middle" font-style="italic">e.g. global CO2 levels rising steadily since the 1950s</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>Anatomy of a time series</h3>
+    <svg viewBox="0 0 900 400" style="max-width:85%; margin:0 auto; display:block;">
+      <!-- Original -->
+      <text x="10" y="28" font-size="13" font-weight="bold" fill="#1a1a2e">Original</text>
+      <rect x="90" y="5" width="790" height="85" rx="6" fill="#f8f9fa" stroke="#ddd"/>
+      <polyline points="100,75 130,70 160,60 190,65 220,72 250,55 280,40 310,50 340,62 370,68 400,58 430,45 460,30 490,40 520,55 550,50 580,35 610,20 640,28 670,45 700,38 730,22 760,15 790,25 820,40 850,30" fill="none" stroke="#2c3e50" stroke-width="2.5"/>
+
+      <!-- = sign -->
+      <text x="430" y="112" font-size="18" fill="#888" text-anchor="middle">=</text>
+
+      <!-- Trend -->
+      <text x="10" y="148" font-size="13" font-weight="bold" fill="#e74c3c">Trend</text>
+      <rect x="90" y="125" width="790" height="85" rx="6" fill="#fff5f5" stroke="#fcc"/>
+      <line x1="100" y1="195" x2="860" y2="140" stroke="#e74c3c" stroke-width="2.5" stroke-dasharray="8,4"/>
+
+      <!-- x sign -->
+      <text x="430" y="232" font-size="18" fill="#888" text-anchor="middle">&times;</text>
+
+      <!-- Seasonality -->
+      <text x="10" y="268" font-size="13" font-weight="bold" fill="#3498db">Seasonality</text>
+      <rect x="90" y="245" width="790" height="85" rx="6" fill="#f0f7ff" stroke="#bdf"/>
+      <path d="M100,287 C120,270 140,270 160,287 C180,304 200,304 220,287 C240,270 260,270 280,287 C300,304 320,304 340,287 C360,270 380,270 400,287 C420,304 440,304 460,287 C480,270 500,270 520,287 C540,304 560,304 580,287 C600,270 620,270 640,287 C660,304 680,304 700,287 C720,270 740,270 760,287 C780,304 800,304 820,287 C840,270 860,270 860,287" fill="none" stroke="#3498db" stroke-width="2.5"/>
+
+      <!-- x sign -->
+      <text x="430" y="352" font-size="18" fill="#888" text-anchor="middle">&times;</text>
+
+      <!-- Residuals -->
+      <text x="10" y="388" font-size="13" font-weight="bold" fill="#95a5a6">Residuals</text>
+      <rect x="90" y="365" width="790" height="30" rx="6" fill="#fafafa" stroke="#ddd"/>
+      <polyline points="100,380 120,377 140,383 160,378 180,382 200,376 220,384 240,379 260,381 280,375 300,383 320,378 340,381 360,377 380,384 400,379 420,376 440,383 460,378 480,382 500,377 520,381 540,384 560,378 580,376 600,383 620,379 640,381 660,377 680,384 700,378 720,382 740,376 760,383 780,379 800,381 820,377 840,383 860,379" fill="none" stroke="#95a5a6" stroke-width="1.5"/>
+    </svg>
+    <p style="font-size:0.7em; margin-top:0.3em;">Original = Trend &times; Seasonality &times; Residuals &nbsp;(multiplicative decomposition)</p>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- 2. HOW WE DO TIME SERIES TODAY -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>How We Do It Today</h2>
+    <p class="subtitle">50 years of progress &mdash; and the same pain points</p>
+  </section>
+
+  <section>
+    <h3>The evolution of time series modeling</h3>
+    <svg viewBox="0 0 960 420" style="max-width:95%; margin:0.2em auto; display:block;">
+      <!-- Main horizontal line -->
+      <line x1="40" y1="200" x2="920" y2="200" stroke="#ddd" stroke-width="3"/>
+
+      <!-- ARIMA -->
+      <circle cx="80" cy="200" r="8" fill="#34495e"/>
+      <rect x="25" y="100" width="110" height="80" rx="10" fill="#34495e"/>
+      <text x="80" y="130" text-anchor="middle" fill="white" font-size="16" font-weight="bold">ARIMA</text>
+      <text x="80" y="152" text-anchor="middle" fill="#aaa" font-size="11">Statistical</text>
+      <text x="80" y="168" text-anchor="middle" fill="#aaa" font-size="11">forecasting</text>
+      <line x1="80" y1="180" x2="80" y2="192" stroke="#34495e" stroke-width="2"/>
+      <text x="80" y="230" text-anchor="middle" fill="#888" font-size="14" font-weight="bold">1970s</text>
+
+      <!-- RNNs -->
+      <circle cx="240" cy="200" r="8" fill="#34495e"/>
+      <rect x="185" y="100" width="110" height="80" rx="10" fill="#34495e"/>
+      <text x="240" y="130" text-anchor="middle" fill="white" font-size="16" font-weight="bold">RNNs</text>
+      <text x="240" y="152" text-anchor="middle" fill="#aaa" font-size="11">Sequential</text>
+      <text x="240" y="168" text-anchor="middle" fill="#aaa" font-size="11">neural nets</text>
+      <line x1="240" y1="180" x2="240" y2="192" stroke="#34495e" stroke-width="2"/>
+      <text x="240" y="230" text-anchor="middle" fill="#888" font-size="14" font-weight="bold">1986</text>
+
+      <!-- LSTMs -->
+      <circle cx="400" cy="200" r="8" fill="#34495e"/>
+      <rect x="345" y="100" width="110" height="80" rx="10" fill="#34495e"/>
+      <text x="400" y="130" text-anchor="middle" fill="white" font-size="16" font-weight="bold">LSTMs</text>
+      <text x="400" y="152" text-anchor="middle" fill="#aaa" font-size="11">Memory gates</text>
+      <text x="400" y="168" text-anchor="middle" fill="#aaa" font-size="11">long sequences</text>
+      <line x1="400" y1="180" x2="400" y2="192" stroke="#34495e" stroke-width="2"/>
+      <text x="400" y="230" text-anchor="middle" fill="#888" font-size="14" font-weight="bold">1997</text>
+
+      <!-- Transformers -->
+      <circle cx="560" cy="200" r="8" fill="#34495e"/>
+      <rect x="490" y="100" width="140" height="80" rx="10" fill="#34495e"/>
+      <text x="560" y="130" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Transformers</text>
+      <text x="560" y="152" text-anchor="middle" fill="#aaa" font-size="11">Self-attention</text>
+      <text x="560" y="168" text-anchor="middle" fill="#aaa" font-size="11">parallelizable</text>
+      <line x1="560" y1="180" x2="560" y2="192" stroke="#34495e" stroke-width="2"/>
+      <text x="560" y="230" text-anchor="middle" fill="#888" font-size="14" font-weight="bold">2017</text>
+
+      <!-- GPT / BERT -->
+      <circle cx="720" cy="200" r="8" fill="#34495e"/>
+      <rect x="655" y="100" width="130" height="80" rx="10" fill="#34495e"/>
+      <text x="720" y="130" text-anchor="middle" fill="white" font-size="16" font-weight="bold">GPT / BERT</text>
+      <text x="720" y="152" text-anchor="middle" fill="#aaa" font-size="11">LLM revolution</text>
+      <text x="720" y="168" text-anchor="middle" fill="#aaa" font-size="11">in text</text>
+      <line x1="720" y1="180" x2="720" y2="192" stroke="#34495e" stroke-width="2"/>
+      <text x="720" y="230" text-anchor="middle" fill="#888" font-size="14" font-weight="bold">2018-19</text>
+
+      <!-- TS FMs (highlighted) -->
+      <circle cx="880" cy="200" r="10" fill="#e74c3c"/>
+      <rect x="810" y="88" width="140" height="95" rx="12" fill="#e74c3c"/>
+      <text x="880" y="120" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Time Series</text>
+      <text x="880" y="140" text-anchor="middle" fill="white" font-size="16" font-weight="bold">FMs</text>
+      <text x="880" y="162" text-anchor="middle" fill="#ffcdd2" font-size="11">Foundation models</text>
+      <text x="880" y="178" text-anchor="middle" fill="#ffcdd2" font-size="11">for temporal data</text>
+      <line x1="880" y1="183" x2="880" y2="190" stroke="#e74c3c" stroke-width="2"/>
+      <text x="880" y="230" text-anchor="middle" fill="#e74c3c" font-size="14" font-weight="bold">2023-24</text>
+
+      <!-- Bottom annotations: what each solved -->
+      <text x="160" y="275" text-anchor="middle" fill="#aaa" font-size="11" font-style="italic">handled non-linearity</text>
+      <path d="M95,260 L225,260" fill="none" stroke="#ccc" stroke-width="1"/>
+      <text x="320" y="305" text-anchor="middle" fill="#aaa" font-size="11" font-style="italic">learned long-term memory</text>
+      <path d="M250,290 L390,290" fill="none" stroke="#ccc" stroke-width="1"/>
+      <text x="480" y="335" text-anchor="middle" fill="#aaa" font-size="11" font-style="italic">parallel + long-range</text>
+      <path d="M410,320 L550,320" fill="none" stroke="#ccc" stroke-width="1"/>
+      <text x="640" y="365" text-anchor="middle" fill="#aaa" font-size="11" font-style="italic">pre-train once, scale</text>
+      <path d="M570,350 L710,350" fill="none" stroke="#ccc" stroke-width="1"/>
+      <text x="800" y="395" text-anchor="middle" fill="#c0392b" font-size="12" font-style="italic" font-weight="bold">apply to time series</text>
+      <path d="M730,380 L870,380" fill="none" stroke="#e74c3c" stroke-width="1.5"/>
+    </svg>
+  </section>
+
+  <section>
+    <h3>Classical: ARIMA &amp; friends</h3>
+    <p style="font-size:0.75em;">The workhorse of statistical forecasting since the 1970s. Models time series as three combined components:</p>
+
+    <div class="columns" style="margin-top:0.4em; gap:1em;">
+      <div class="col" style="text-align:center;">
+        <svg viewBox="0 0 160 90" style="width:80%; margin:0 auto; display:block;">
+          <polyline points="10,70 30,55 50,60 70,45 90,50 110,35 130,40 150,25" fill="none" stroke="#3498db" stroke-width="3"/>
+          <circle cx="30" cy="55" r="3" fill="#3498db"/><circle cx="70" cy="45" r="3" fill="#3498db"/>
+          <circle cx="110" cy="35" r="3" fill="#3498db"/>
+          <line x1="30" y1="55" x2="70" y2="45" stroke="#3498db" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+          <line x1="70" y1="45" x2="110" y2="35" stroke="#3498db" stroke-width="1" stroke-dasharray="3,3" opacity="0.4"/>
+        </svg>
+        <strong style="font-size:0.8em;">AR</strong><br>
+        <span style="font-size:0.65em; color:#555;">AutoRegressive</span><br>
+        <span style="font-size:0.6em; color:#888;">Future depends on its own past values</span>
+      </div>
+      <div class="col" style="text-align:center;">
+        <svg viewBox="0 0 160 90" style="width:80%; margin:0 auto; display:block;">
+          <polyline points="10,25 40,35 70,55 100,65 130,75 150,80" fill="none" stroke="#95a5a6" stroke-width="2" stroke-dasharray="5,3"/>
+          <polyline points="10,30 40,20 70,35 100,15 130,30 150,20" fill="none" stroke="#e74c3c" stroke-width="2.5"/>
+          <text x="80" y="88" text-anchor="middle" font-size="8" fill="#888">trend removed</text>
+        </svg>
+        <strong style="font-size:0.8em;">I</strong><br>
+        <span style="font-size:0.65em; color:#555;">Integrated (Differencing)</span><br>
+        <span style="font-size:0.6em; color:#888;">Remove trends to make data stationary</span>
+      </div>
+      <div class="col" style="text-align:center;">
+        <svg viewBox="0 0 160 90" style="width:80%; margin:0 auto; display:block;">
+          <polyline points="10,45 30,40 50,50 70,35 90,55 110,30 130,48 150,42" fill="none" stroke="#2ecc71" stroke-width="2.5"/>
+          <line x1="10" y1="45" x2="150" y2="45" stroke="#ccc" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="30" y="30" font-size="8" fill="#e74c3c">err</text>
+          <text x="90" y="65" font-size="8" fill="#e74c3c">err</text>
+        </svg>
+        <strong style="font-size:0.8em;">MA</strong><br>
+        <span style="font-size:0.65em; color:#555;">Moving Average</span><br>
+        <span style="font-size:0.6em; color:#888;">Correct using past forecast errors</span>
+      </div>
+    </div>
+
+    <div class="columns" style="margin-top:0.6em; gap:1em;">
+      <div class="col">
+        <div class="win" style="font-size:0.65em;">
+          <strong>Strengths:</strong> interpretable coefficients, fast to fit, well-understood theory, works great for simple stationary data with clear seasonality
+        </div>
+      </div>
+      <div class="col">
+        <div class="pain" style="font-size:0.65em;">
+          <strong>Limitations:</strong> assumes stationarity, needs domain knowledge (<code>season_length</code>, log transforms), struggles with non-linearity, can't transfer across datasets
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Machine Learning &amp; Deep Learning eras</h3>
+
+    <svg viewBox="0 0 940 480" style="max-width:96%; margin:0.1em auto; display:block;">
+      <!-- ML column -->
+      <rect x="10" y="5" width="445" height="410" rx="14" fill="#fffbf0" stroke="#f5deb3" stroke-width="1.5"/>
+      <text x="232" y="40" text-anchor="middle" font-size="20" font-weight="bold" fill="#e67e22">ML: XGBoost, LightGBM</text>
+
+      <!-- Pipeline visual -->
+      <!-- Raw data -->
+      <rect x="30" y="60" width="120" height="75" rx="8" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="42,115 55,105 68,118 81,95 94,108 107,90 120,100 138,88" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+      <text x="90" y="130" text-anchor="middle" font-size="11" fill="#888">raw data</text>
+
+      <!-- Arrow -->
+      <text x="170" y="102" text-anchor="middle" fill="#bbb" font-size="26">&rarr;</text>
+
+      <!-- Hand-crafted features -->
+      <rect x="192" y="62" width="105" height="28" rx="5" fill="#ffeaa7" stroke="#f39c12" stroke-width="1.2"/>
+      <text x="244" y="81" text-anchor="middle" font-size="12" fill="#856404" font-weight="bold">lag_7d</text>
+      <rect x="192" y="94" width="105" height="28" rx="5" fill="#ffeaa7" stroke="#f39c12" stroke-width="1.2"/>
+      <text x="244" y="113" text-anchor="middle" font-size="12" fill="#856404" font-weight="bold">rolling_30d</text>
+      <rect x="192" y="126" width="105" height="28" rx="5" fill="#ffeaa7" stroke="#f39c12" stroke-width="1.2"/>
+      <text x="244" y="145" text-anchor="middle" font-size="12" fill="#856404" font-weight="bold">day_of_week</text>
+
+      <!-- Arrow -->
+      <text x="318" y="110" text-anchor="middle" fill="#bbb" font-size="26">&rarr;</text>
+
+      <!-- Tree -->
+      <rect x="338" y="65" width="95" height="80" rx="8" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <circle cx="385" cy="85" r="9" fill="#e67e22" opacity="0.7"/>
+      <line x1="380" y1="94" x2="365" y2="112" stroke="#e67e22" stroke-width="2"/>
+      <line x1="390" y1="94" x2="405" y2="112" stroke="#e67e22" stroke-width="2"/>
+      <circle cx="365" cy="118" r="6" fill="#e67e22" opacity="0.5"/>
+      <circle cx="405" cy="118" r="6" fill="#e67e22" opacity="0.5"/>
+      <text x="385" y="142" text-anchor="middle" font-size="10" fill="#888">tree model</text>
+
+      <!-- Key points -->
+      <text x="232" y="185" text-anchor="middle" font-size="15" fill="#333">Handles <tspan font-weight="bold">non-linear patterns</tspan> well</text>
+      <text x="232" y="208" text-anchor="middle" font-size="15" fill="#333">Dominated forecasting competitions</text>
+
+      <!-- Pain -->
+      <rect x="30" y="230" width="405" height="70" rx="10" fill="#fff3f3" stroke="#fcc" stroke-width="1.5"/>
+      <text x="232" y="258" text-anchor="middle" font-size="15" fill="#c0392b" font-weight="bold">You must hand-craft every feature</text>
+      <text x="232" y="282" text-anchor="middle" font-size="13" fill="#888">lags, rolling stats, calendar flags &mdash; different for every dataset</text>
+
+      <!-- Effort bar -->
+      <text x="50" y="335" font-size="13" fill="#888">Effort:</text>
+      <rect x="105" y="320" width="330" height="22" rx="5" fill="#eee"/>
+      <rect x="105" y="320" width="264" height="22" rx="5" fill="#f39c12" opacity="0.6"/>
+      <text x="237" y="336" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">~80% feature engineering</text>
+      <rect x="369" y="320" width="66" height="22" rx="5" fill="#e67e22"/>
+      <text x="402" y="336" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">modeling</text>
+
+      <!-- DL column -->
+      <rect x="485" y="5" width="445" height="410" rx="14" fill="#f0f4ff" stroke="#c5d5f5" stroke-width="1.5"/>
+      <text x="707" y="40" text-anchor="middle" font-size="20" font-weight="bold" fill="#2980b9">DL: RNNs &rarr; LSTMs</text>
+
+      <!-- Pipeline visual -->
+      <!-- Raw data -->
+      <rect x="505" y="60" width="120" height="75" rx="8" fill="#fff" stroke="#ddd" stroke-width="1.5"/>
+      <polyline points="517,115 530,105 543,118 556,95 569,108 582,90 595,100 613,88" fill="none" stroke="#3498db" stroke-width="2.5"/>
+      <text x="565" y="130" text-anchor="middle" font-size="11" fill="#888">raw data</text>
+
+      <!-- Arrow (direct!) -->
+      <text x="648" y="102" text-anchor="middle" fill="#bbb" font-size="26">&rarr;</text>
+
+      <!-- LSTM chain (bigger cells) -->
+      <rect x="672" y="68" width="44" height="36" rx="6" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+      <text x="694" y="92" text-anchor="middle" font-size="12" fill="#2980b9" font-weight="bold">h1</text>
+      <rect x="726" y="68" width="44" height="36" rx="6" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+      <text x="748" y="92" text-anchor="middle" font-size="12" fill="#2980b9" font-weight="bold">h2</text>
+      <rect x="780" y="68" width="44" height="36" rx="6" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+      <text x="802" y="92" text-anchor="middle" font-size="12" fill="#2980b9" font-weight="bold">h3</text>
+      <rect x="834" y="68" width="44" height="36" rx="6" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+      <text x="856" y="92" text-anchor="middle" font-size="12" fill="#2980b9" font-weight="bold">h4</text>
+      <!-- Chain arrows -->
+      <line x1="716" y1="86" x2="726" y2="86" stroke="#3498db" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="770" y1="86" x2="780" y2="86" stroke="#3498db" stroke-width="2" marker-end="url(#arr)"/>
+      <line x1="824" y1="86" x2="834" y2="86" stroke="#3498db" stroke-width="2" marker-end="url(#arr)"/>
+      <text x="775" y="122" text-anchor="middle" font-size="11" fill="#888">sequential cells</text>
+
+      <!-- Key points -->
+      <text x="707" y="160" text-anchor="middle" font-size="15" fill="#333">Learns sequences <tspan font-weight="bold">end-to-end</tspan></text>
+      <text x="707" y="183" text-anchor="middle" font-size="15" fill="#333">No feature engineering needed</text>
+      <text x="707" y="206" text-anchor="middle" font-size="15" fill="#333">Memory gates retain long-term patterns</text>
+
+      <!-- Pain -->
+      <rect x="505" y="230" width="405" height="70" rx="10" fill="#fff3f3" stroke="#fcc" stroke-width="1.5"/>
+      <text x="707" y="258" text-anchor="middle" font-size="15" fill="#c0392b" font-weight="bold">Sequential = slow &amp; can't parallelize</text>
+      <text x="707" y="282" text-anchor="middle" font-size="13" fill="#888">Still struggle with very long-range dependencies (1000s of steps)</text>
+
+      <!-- Effort bar -->
+      <text x="525" y="335" font-size="13" fill="#888">Effort:</text>
+      <rect x="580" y="320" width="330" height="22" rx="5" fill="#eee"/>
+      <rect x="580" y="320" width="88" height="22" rx="5" fill="#85c1e9" opacity="0.7"/>
+      <text x="624" y="336" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">data</text>
+      <rect x="668" y="320" width="132" height="22" rx="5" fill="#3498db"/>
+      <text x="734" y="336" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">architecture + training</text>
+      <rect x="800" y="320" width="110" height="22" rx="5" fill="#2471a3"/>
+      <text x="855" y="336" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">GPU compute</text>
+
+      <!-- Bottom shared line -->
+      <text x="470" y="455" text-anchor="middle" font-size="16" fill="#555">Both are improvements &mdash; but both still require <tspan font-weight="bold" fill="#c0392b">training from scratch</tspan> for every dataset.</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The real pain across all these approaches</h3>
+    <div class="pain" style="font-size: 1em; text-align: center; border-left-width: 6px;">
+      Every new dataset = train a new model from scratch
+    </div>
+    <p style="font-size:0.75em; margin-top:0.5em;">Whether you use ARIMA, XGBoost, or LSTMs, the workflow is the same: collect data, engineer features, select a model, tune hyperparameters, train, evaluate, deploy. Then a new site, a new region, or a new metric comes along &mdash; and you <strong>repeat the entire process</strong>.</p>
+    <br>
+    <svg viewBox="0 0 900 340" style="max-width:88%; margin:0.5em auto; display:block;">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#888"/>
+        </marker>
+        <marker id="arrRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <path d="M0,0 L8,3 L0,6" fill="#e74c3c"/>
+        </marker>
+      </defs>
+
+      <!-- Step boxes in a loop -->
+      <!-- Row 1 -->
+      <rect x="20" y="20" width="130" height="50" rx="8" fill="#1a1a2e" stroke="none"/>
+      <text x="85" y="42" text-anchor="middle" fill="white" font-size="12" font-weight="bold">New Dataset</text>
+      <text x="85" y="57" text-anchor="middle" fill="#aaa" font-size="10">Site A, Region 1</text>
+
+      <line x1="150" y1="45" x2="185" y2="45" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="190" y="20" width="130" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="255" y="50" text-anchor="middle" fill="white" font-size="12">Collect Data</text>
+
+      <line x1="320" y1="45" x2="355" y2="45" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="360" y="20" width="150" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="435" y="50" text-anchor="middle" fill="white" font-size="12">Feature Engineering</text>
+
+      <line x1="510" y1="45" x2="545" y2="45" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="550" y="20" width="140" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="620" y="50" text-anchor="middle" fill="white" font-size="12">Model Selection</text>
+
+      <line x1="690" y1="45" x2="725" y2="45" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="730" y="20" width="150" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="805" y="50" text-anchor="middle" fill="white" font-size="12">Hyperparam Tuning</text>
+
+      <!-- Down arrow -->
+      <line x1="805" y1="70" x2="805" y2="100" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <!-- Row 2 (right to left) -->
+      <rect x="730" y="105" width="150" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="805" y="135" text-anchor="middle" fill="white" font-size="12">Train Model</text>
+
+      <line x1="730" y1="130" x2="695" y2="130" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="550" y="105" width="140" height="50" rx="8" fill="#34495e" stroke="none"/>
+      <text x="620" y="135" text-anchor="middle" fill="white" font-size="12">Evaluate</text>
+
+      <line x1="550" y1="130" x2="515" y2="130" stroke="#888" stroke-width="2" marker-end="url(#arr)"/>
+
+      <rect x="360" y="105" width="150" height="50" rx="8" fill="#2ecc71" stroke="none"/>
+      <text x="435" y="135" text-anchor="middle" fill="white" font-size="12" font-weight="bold">Deploy</text>
+
+      <!-- The painful repeat arrow — from bottom of Deploy to top of faded New Dataset -->
+      <path d="M435,155 L435,190 C435,230 85,230 85,248" fill="none" stroke="#e74c3c" stroke-width="3" stroke-dasharray="8,4"/>
+      <polygon points="85,260 78,248 92,248" fill="#e74c3c"/>
+      <text x="500" y="210" text-anchor="middle" fill="#e74c3c" font-size="14" font-weight="bold">New site? REPEAT ALL</text>
+
+      <!-- Second instance (faded) -->
+      <rect x="20" y="260" width="130" height="50" rx="8" fill="#1a1a2e" stroke="none" opacity="0.5"/>
+      <text x="85" y="282" text-anchor="middle" fill="white" font-size="12" font-weight="bold" opacity="0.6">New Dataset</text>
+      <text x="85" y="297" text-anchor="middle" fill="#aaa" font-size="10" opacity="0.6">Site B, Region 2</text>
+
+      <line x1="150" y1="285" x2="185" y2="285" stroke="#888" stroke-width="2" marker-end="url(#arr)" opacity="0.35"/>
+      <rect x="190" y="260" width="130" height="50" rx="8" fill="#34495e" stroke="none" opacity="0.35"/>
+      <text x="255" y="290" text-anchor="middle" fill="white" font-size="12" opacity="0.5">Collect Data</text>
+
+      <line x1="320" y1="285" x2="355" y2="285" stroke="#888" stroke-width="2" marker-end="url(#arr)" opacity="0.35"/>
+      <rect x="360" y="260" width="150" height="50" rx="8" fill="#34495e" stroke="none" opacity="0.35"/>
+      <text x="435" y="290" text-anchor="middle" fill="white" font-size="12" opacity="0.5">Feature Eng...</text>
+
+      <text x="540" y="290" font-size="24" fill="#ccc">...</text>
+    </svg>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- 3. THE TRANSFORMER REVOLUTION -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>The Transformer Revolution</h2>
+    <p class="subtitle">The architecture behind ChatGPT &mdash; and now, time series</p>
+  </section>
+
+  <section>
+    <h3>2017: "Attention Is All You Need"</h3>
+    <p style="font-size:0.75em; margin-bottom:0.6em;">Core idea: <strong>self-attention</strong> &mdash; every position looks at all other positions at once.</p>
+    <div class="columns" style="margin-top:0; gap:2em;">
+      <div class="col" style="text-align:center;">
+        <h4 style="color:#e74c3c; font-size:0.85em; margin:0 0 0.3em 0;">RNN: sequential</h4>
+        <svg viewBox="0 0 260 120" style="width:90%; margin:0 auto; display:block;">
+          <!-- Words in a chain -->
+          <rect x="5" y="30" width="50" height="30" rx="5" fill="#fce4ec"/>
+          <text x="30" y="50" text-anchor="middle" font-size="10" fill="#333">The</text>
+          <rect x="70" y="30" width="50" height="30" rx="5" fill="#fce4ec"/>
+          <text x="95" y="50" text-anchor="middle" font-size="10" fill="#333">cat</text>
+          <rect x="135" y="30" width="50" height="30" rx="5" fill="#fce4ec"/>
+          <text x="160" y="50" text-anchor="middle" font-size="10" fill="#333">sat</text>
+          <rect x="200" y="30" width="50" height="30" rx="5" fill="#fce4ec"/>
+          <text x="225" y="50" text-anchor="middle" font-size="10" fill="#333">on</text>
+          <!-- Arrows: line + polygon arrowhead -->
+          <line x1="57" y1="45" x2="65" y2="45" stroke="#e74c3c" stroke-width="1.5"/>
+          <polygon points="70,45 64,41 64,49" fill="#e74c3c"/>
+          <line x1="122" y1="45" x2="130" y2="45" stroke="#e74c3c" stroke-width="1.5"/>
+          <polygon points="135,45 129,41 129,49" fill="#e74c3c"/>
+          <line x1="187" y1="45" x2="195" y2="45" stroke="#e74c3c" stroke-width="1.5"/>
+          <polygon points="200,45 194,41 194,49" fill="#e74c3c"/>
+          <!-- Step labels -->
+          <text x="30" y="78" text-anchor="middle" fill="#aaa" font-size="8">step 1</text>
+          <text x="95" y="78" text-anchor="middle" fill="#aaa" font-size="8">step 2</text>
+          <text x="160" y="78" text-anchor="middle" fill="#aaa" font-size="8">step 3</text>
+          <text x="225" y="78" text-anchor="middle" fill="#aaa" font-size="8">step 4</text>
+          <text x="130" y="102" text-anchor="middle" fill="#999" font-size="9" font-style="italic">One at a time. Slow.</text>
+          <text x="130" y="116" text-anchor="middle" fill="#999" font-size="9" font-style="italic">"sat" barely remembers "The"</text>
+        </svg>
+      </div>
+      <div class="col" style="text-align:center;">
+        <h4 style="color:#3498db; font-size:0.85em; margin:0 0 0.3em 0;">Transformer: all at once</h4>
+        <svg viewBox="0 0 260 120" style="width:90%; margin:0 auto; display:block;">
+          <!-- Attention arcs -->
+          <path d="M30,30 Q62,0 95,30" fill="none" stroke="#3498db" stroke-width="1.5" opacity="0.6"/>
+          <path d="M30,30 Q95,-15 160,30" fill="none" stroke="#3498db" stroke-width="1" opacity="0.35"/>
+          <path d="M30,30 Q127,-20 225,30" fill="none" stroke="#3498db" stroke-width="0.8" opacity="0.25"/>
+          <path d="M95,30 Q127,0 160,30" fill="none" stroke="#3498db" stroke-width="2" opacity="0.8"/>
+          <path d="M95,30 Q160,-10 225,30" fill="none" stroke="#3498db" stroke-width="1" opacity="0.35"/>
+          <path d="M160,30 Q192,5 225,30" fill="none" stroke="#3498db" stroke-width="1.2" opacity="0.5"/>
+          <!-- Words -->
+          <rect x="5" y="30" width="50" height="30" rx="5" fill="#e3f2fd"/>
+          <text x="30" y="50" text-anchor="middle" font-size="10" fill="#333">The</text>
+          <rect x="70" y="30" width="50" height="30" rx="5" fill="#e3f2fd"/>
+          <text x="95" y="50" text-anchor="middle" font-size="10" fill="#333">cat</text>
+          <rect x="135" y="30" width="50" height="30" rx="5" fill="#e3f2fd"/>
+          <text x="160" y="50" text-anchor="middle" font-size="10" fill="#333">sat</text>
+          <rect x="200" y="30" width="50" height="30" rx="5" fill="#e3f2fd"/>
+          <text x="225" y="50" text-anchor="middle" font-size="10" fill="#333">on</text>
+          <text x="130" y="102" text-anchor="middle" fill="#999" font-size="9" font-style="italic">All at once. Parallel.</text>
+          <text x="130" y="116" text-anchor="middle" fill="#999" font-size="9" font-style="italic">Every word "sees" every other</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3>Under the hood: from text to predictions</h3>
+    <p style="font-size:0.7em; margin-bottom:0.2em;">An LLM processes text through a pipeline. Let's trace <strong>"The cat sat on the&thinsp;___"</strong>:</p>
+    <svg viewBox="0 0 920 380" style="max-width:96%; margin:0 auto; display:block;">
+      <!-- Step 1: Tokenize -->
+      <rect x="10" y="8" width="185" height="100" rx="10" fill="#f8f9fa" stroke="#ddd" stroke-width="1.5"/>
+      <text x="102" y="32" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">1. Tokenize</text>
+      <text x="102" y="50" text-anchor="middle" font-size="11" fill="#888">Split text into sub-word pieces</text>
+      <g font-size="11" fill="#2980b9" font-weight="bold">
+        <rect x="20" y="62" width="34" height="24" rx="4" fill="#eaf4fd" stroke="#3498db" stroke-width="1"/>
+        <text x="37" y="79" text-anchor="middle">The</text>
+        <rect x="58" y="62" width="30" height="24" rx="4" fill="#eaf4fd" stroke="#3498db" stroke-width="1"/>
+        <text x="73" y="79" text-anchor="middle">cat</text>
+        <rect x="92" y="62" width="30" height="24" rx="4" fill="#eaf4fd" stroke="#3498db" stroke-width="1"/>
+        <text x="107" y="79" text-anchor="middle">sat</text>
+        <rect x="126" y="62" width="28" height="24" rx="4" fill="#eaf4fd" stroke="#3498db" stroke-width="1"/>
+        <text x="140" y="79" text-anchor="middle">on</text>
+        <rect x="158" y="62" width="30" height="24" rx="4" fill="#eaf4fd" stroke="#3498db" stroke-width="1"/>
+        <text x="173" y="79" text-anchor="middle">the</text>
+      </g>
+      <text x="102" y="102" text-anchor="middle" font-size="9" fill="#aaa">vocab of ~50k tokens (not characters!)</text>
+
+      <!-- Arrow -->
+      <line x1="200" y1="58" x2="222" y2="58" stroke="#bbb" stroke-width="2"/>
+      <polygon points="228,58 220,52 220,64" fill="#bbb"/>
+
+      <!-- Step 2: Embed -->
+      <rect x="234" y="8" width="185" height="100" rx="10" fill="#f8f9fa" stroke="#ddd" stroke-width="1.5"/>
+      <text x="326" y="32" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">2. Embed</text>
+      <text x="326" y="50" text-anchor="middle" font-size="11" fill="#888">Each token &rarr; a vector</text>
+      <!-- Colored bars representing vectors -->
+      <g opacity="0.8">
+        <rect x="252" y="62" width="6" height="20" rx="2" fill="#e74c3c"/><rect x="260" y="66" width="6" height="16" rx="2" fill="#3498db"/><rect x="268" y="60" width="6" height="22" rx="2" fill="#2ecc71"/><rect x="276" y="68" width="6" height="14" rx="2" fill="#f39c12"/>
+        <text x="267" y="95" text-anchor="middle" font-size="8" fill="#888">"The"</text>
+        <rect x="300" y="68" width="6" height="14" rx="2" fill="#e74c3c"/><rect x="308" y="60" width="6" height="22" rx="2" fill="#3498db"/><rect x="316" y="64" width="6" height="18" rx="2" fill="#2ecc71"/><rect x="324" y="62" width="6" height="20" rx="2" fill="#f39c12"/>
+        <text x="315" y="95" text-anchor="middle" font-size="8" fill="#888">"cat"</text>
+        <rect x="348" y="64" width="6" height="18" rx="2" fill="#e74c3c"/><rect x="356" y="62" width="6" height="20" rx="2" fill="#3498db"/><rect x="364" y="68" width="6" height="14" rx="2" fill="#2ecc71"/><rect x="372" y="60" width="6" height="22" rx="2" fill="#f39c12"/>
+        <text x="363" y="95" text-anchor="middle" font-size="8" fill="#888">"sat"</text>
+      </g>
+      <text x="326" y="102" text-anchor="middle" font-size="9" fill="#aaa">position in "meaning space" (768+ dims)</text>
+
+      <!-- Arrow -->
+      <line x1="424" y1="58" x2="446" y2="58" stroke="#bbb" stroke-width="2"/>
+      <polygon points="452,58 444,52 444,64" fill="#bbb"/>
+
+      <!-- Step 3: Self-Attention -->
+      <rect x="458" y="8" width="210" height="100" rx="10" fill="#f0f4ff" stroke="#3498db" stroke-width="1.5"/>
+      <text x="563" y="32" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">3. Self-Attention</text>
+      <text x="563" y="50" text-anchor="middle" font-size="11" fill="#888">Each token asks: "who matters to me?"</text>
+      <!-- Token boxes with attention arcs -->
+      <rect x="478" y="64" width="28" height="20" rx="4" fill="#eaf4fd" stroke="#3498db"/><text x="492" y="78" text-anchor="middle" font-size="8" fill="#2980b9">The</text>
+      <rect x="514" y="64" width="28" height="20" rx="4" fill="#d4efdf" stroke="#2ecc71" stroke-width="2"/><text x="528" y="78" text-anchor="middle" font-size="8" fill="#27ae60" font-weight="bold">cat</text>
+      <rect x="550" y="64" width="28" height="20" rx="4" fill="#d4efdf" stroke="#2ecc71" stroke-width="2"/><text x="564" y="78" text-anchor="middle" font-size="8" fill="#27ae60" font-weight="bold">sat</text>
+      <rect x="586" y="64" width="28" height="20" rx="4" fill="#eaf4fd" stroke="#3498db"/><text x="600" y="78" text-anchor="middle" font-size="8" fill="#2980b9">on</text>
+      <rect x="622" y="64" width="28" height="20" rx="4" fill="#eaf4fd" stroke="#3498db"/><text x="636" y="78" text-anchor="middle" font-size="8" fill="#2980b9">the</text>
+      <!-- Attention arcs from "the" (last) to "cat" and "sat" (strongest) -->
+      <path d="M636,64 Q610,42 528,64" fill="none" stroke="#2ecc71" stroke-width="2.5" opacity="0.7"/>
+      <path d="M636,64 Q612,46 564,64" fill="none" stroke="#2ecc71" stroke-width="2" opacity="0.5"/>
+      <path d="M636,64 Q636,54 600,64" fill="none" stroke="#aaa" stroke-width="1" opacity="0.3"/>
+      <text x="563" y="100" text-anchor="middle" font-size="9" fill="#27ae60" font-weight="bold">"cat" + "sat" get high attention for predicting ___</text>
+
+      <!-- Arrow -->
+      <line x1="673" y1="58" x2="695" y2="58" stroke="#bbb" stroke-width="2"/>
+      <polygon points="701,58 693,52 693,64" fill="#bbb"/>
+
+      <!-- Step 4: Stack Layers -->
+      <rect x="707" y="8" width="200" height="100" rx="10" fill="#f8f9fa" stroke="#ddd" stroke-width="1.5"/>
+      <text x="807" y="32" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a2e">4. Stack &amp; Repeat</text>
+      <text x="807" y="50" text-anchor="middle" font-size="11" fill="#888">12 to 96 transformer layers</text>
+      <!-- Stacked layer blocks -->
+      <rect x="745" y="60" width="124" height="10" rx="3" fill="#ddd"/>
+      <rect x="745" y="72" width="124" height="10" rx="3" fill="#ccc"/>
+      <rect x="745" y="84" width="124" height="10" rx="3" fill="#bbb"/>
+      <text x="807" y="69" text-anchor="middle" font-size="7" fill="#555">attention + feed-forward</text>
+      <text x="807" y="81" text-anchor="middle" font-size="7" fill="#555">attention + feed-forward</text>
+      <text x="807" y="93" text-anchor="middle" font-size="7" fill="#555">attention + feed-forward</text>
+      <text x="807" y="102" text-anchor="middle" font-size="9" fill="#aaa">each layer refines understanding</text>
+
+      <!-- Big arrow down to output -->
+      <line x1="460" y1="118" x2="460" y2="142" stroke="#bbb" stroke-width="2"/>
+      <polygon points="460,148 454,140 466,140" fill="#bbb"/>
+
+      <!-- Step 5: Output -->
+      <rect x="100" y="152" width="720" height="95" rx="12" fill="#fff" stroke="#1a1a2e" stroke-width="2"/>
+      <text x="460" y="176" text-anchor="middle" font-size="14" font-weight="bold" fill="#1a1a2e">5. Predict next token: probability over entire vocabulary</text>
+      <!-- Probability bars -->
+      <rect x="170" y="192" width="220" height="22" rx="4" fill="#2ecc71"/>
+      <text x="180" y="208" font-size="12" fill="white" font-weight="bold">mat &mdash; 62%</text>
+      <rect x="170" y="218" width="70" height="18" rx="4" fill="#3498db" opacity="0.7"/>
+      <text x="180" y="231" font-size="10" fill="white">rug &mdash; 8%</text>
+      <rect x="244" y="218" width="55" height="18" rx="4" fill="#3498db" opacity="0.5"/>
+      <text x="254" y="231" font-size="10" fill="white">floor &mdash; 6%</text>
+      <rect x="303" y="218" width="50" height="18" rx="4" fill="#3498db" opacity="0.3"/>
+      <text x="313" y="231" font-size="10" fill="white">bed &mdash; 4%</text>
+      <text x="370" y="231" font-size="10" fill="#aaa">... 50,000 tokens ranked</text>
+      <!-- Sampling callout -->
+      <rect x="500" y="190" width="290" height="48" rx="8" fill="#fffbeb" stroke="#f39c12" stroke-width="1.5"/>
+      <text x="645" y="210" text-anchor="middle" font-size="12" fill="#333"><tspan font-weight="bold">Sample</tspan> from this distribution</text>
+      <text x="645" y="228" text-anchor="middle" font-size="11" fill="#888">= why LLMs can give different answers each time</text>
+
+      <!-- Bottom: training insight -->
+      <rect x="100" y="270" width="720" height="90" rx="10" fill="#faf5ff" stroke="#9b59b6" stroke-width="2"/>
+      <text x="460" y="298" text-anchor="middle" font-size="15" font-weight="bold" fill="#8e44ad">Training = adjust weights to get better at this prediction</text>
+      <text x="460" y="322" text-anchor="middle" font-size="13" fill="#555">Feed it trillions of tokens from books, web, code, Wikipedia.</text>
+      <text x="460" y="342" text-anchor="middle" font-size="13" fill="#555">Repeat billions of times. Each step: predict next token, compare with actual, update weights.</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The surprising power of next-token prediction</h3>
+    <p style="font-size:0.75em;">To predict the next word well, the model <strong>must</strong> learn about the world:</p>
+    <div style="margin:0.5em 0;">
+      <div style="display:flex; align-items:center; gap:0.8em; margin:0.4em 0; font-size:0.8em;">
+        <div style="background:#f0f4ff; border-radius:8px; padding:0.4em 0.7em; flex:1; font-family:'Fira Code',monospace;">
+          "The capital of France is <span style="color:#e74c3c; font-weight:bold;">___</span>"
+        </div>
+        <div style="color:#888;">&rarr;</div>
+        <div style="color:#3498db; font-weight:bold; min-width:160px;">Requires geography</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.8em; margin:0.4em 0; font-size:0.8em;">
+        <div style="background:#f0f4ff; border-radius:8px; padding:0.4em 0.7em; flex:1; font-family:'Fira Code',monospace;">
+          "If x = 3 and y = 7, then x + y = <span style="color:#e74c3c; font-weight:bold;">___</span>"
+        </div>
+        <div style="color:#888;">&rarr;</div>
+        <div style="color:#3498db; font-weight:bold; min-width:160px;">Requires arithmetic</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.8em; margin:0.4em 0; font-size:0.8em;">
+        <div style="background:#f0f4ff; border-radius:8px; padding:0.4em 0.7em; flex:1; font-family:'Fira Code',monospace;">
+          "def fibonacci(n):<span style="color:#e74c3c; font-weight:bold;">___</span>"
+        </div>
+        <div style="color:#888;">&rarr;</div>
+        <div style="color:#3498db; font-weight:bold; min-width:160px;">Requires coding</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.8em; margin:0.4em 0; font-size:0.8em;">
+        <div style="background:#f0f4ff; border-radius:8px; padding:0.4em 0.7em; flex:1; font-family:'Fira Code',monospace;">
+          "She smiled but her eyes looked <span style="color:#e74c3c; font-weight:bold;">___</span>"
+        </div>
+        <div style="color:#888;">&rarr;</div>
+        <div style="color:#3498db; font-weight:bold; min-width:160px;">Requires emotional reasoning</div>
+      </div>
+    </div>
+    <div class="analogy" style="margin-top:0.5em;">
+      <strong style="color:var(--orange);">The insight:</strong> "Predict the next token" sounds trivial. But at scale, it forces the model to build an internal representation of grammar, facts, logic, and common sense &mdash; as a <strong>side effect</strong> of getting better at prediction.
+    </div>
+    <p class="fragment" style="font-size:0.8em; margin-top:0.5em;">This is the <strong>"foundation model"</strong> paradigm: train once on a massive general objective, then apply to specific tasks. <span class="highlight">Can we do the same for time series?</span></p>
+  </section>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- 4. FOUNDATION MODELS FOR TIME SERIES -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>Foundation Models<br>for Time Series</h2>
+    <p class="subtitle">The concept, the architecture, and the players</p>
+  </section>
+
+  <section>
+    <h3>The two-stage paradigm</h3>
+    <p style="font-size:0.75em; margin-bottom:0.3em;">The same idea behind LLMs, applied to time series: <strong>learn general patterns first</strong>, then choose your path.</p>
+    <svg viewBox="0 0 900 440" style="max-width:95%; margin:0 auto; display:block;">
+      <!-- Pre-training card -->
+      <rect x="20" y="10" width="340" height="300" rx="14" fill="#f0f4ff" stroke="#3498db" stroke-width="2"/>
+      <text x="190" y="45" text-anchor="middle" font-size="22" font-weight="bold" fill="#2c3e50">1. Pre-training</text>
+      <text x="190" y="68" text-anchor="middle" font-size="13" fill="#3498db" font-weight="bold">Goal: learn the "language" of time series</text>
+
+      <!-- What it sees -->
+      <text x="40" y="98" font-size="13" font-weight="bold" fill="#1a1a2e">What it sees:</text>
+      <text x="40" y="118" font-size="13" fill="#555">Millions of series from diverse domains &mdash;</text>
+      <text x="40" y="136" font-size="13" fill="#555">energy, retail, weather, finance, health...</text>
+
+      <!-- What it learns -->
+      <text x="40" y="168" font-size="13" font-weight="bold" fill="#1a1a2e">What it learns:</text>
+      <path d="M50,183 Q63,168 76,183 Q89,198 102,183" fill="none" stroke="#3498db" stroke-width="2" opacity="0.6"/>
+      <text x="115" y="188" font-size="13" fill="#555">"Seasonality repeats"</text>
+      <polyline points="50,208 65,205 80,200 95,196 110,190" fill="none" stroke="#3498db" stroke-width="2" opacity="0.6"/>
+      <text x="115" y="213" font-size="13" fill="#555">"Trends continue"</text>
+      <polyline points="50,232 60,230 70,248 80,225 90,240 100,228" fill="none" stroke="#3498db" stroke-width="2" opacity="0.6"/>
+      <text x="115" y="238" font-size="13" fill="#555">"Spikes are temporary"</text>
+
+      <!-- Cost -->
+      <line x1="40" y1="258" x2="340" y2="258" stroke="#dde" stroke-width="1"/>
+      <text x="190" y="282" text-anchor="middle" font-size="13" fill="#999">Expensive (done once by Google, Amazon, etc.)</text>
+      <text x="190" y="298" text-anchor="middle" font-size="13" fill="#999">You download the result for free</text>
+
+      <!-- Fork: two arrows branching from pre-training -->
+      <!-- Upper arrow → Zero-shot -->
+      <line x1="360" y1="110" x2="490" y2="70" stroke="#e67e22" stroke-width="2.5"/>
+      <polygon points="503,65 489,62 492,76" fill="#e67e22"/>
+      <!-- Lower arrow → Fine-tuning -->
+      <line x1="360" y1="210" x2="490" y2="250" stroke="#27ae60" stroke-width="2.5"/>
+      <polygon points="503,255 489,244 492,258" fill="#27ae60"/>
+
+      <!-- Path A: Zero-shot card -->
+      <rect x="510" y="10" width="370" height="140" rx="14" fill="#fef9f0" stroke="#e67e22" stroke-width="2"/>
+      <text x="695" y="40" text-anchor="middle" font-size="20" font-weight="bold" fill="#2c3e50">2a. Zero-shot</text>
+      <text x="695" y="60" text-anchor="middle" font-size="13" fill="#e67e22" font-weight="bold">Use the model directly &mdash; no training at all</text>
+
+      <text x="530" y="85" font-size="13" font-weight="bold" fill="#1a1a2e">How:</text>
+      <text x="530" y="102" font-size="13" fill="#555">Feed your raw data in, get predictions out.</text>
+      <text x="530" y="119" font-size="13" fill="#555">No labels, no setup, no GPU needed.</text>
+
+      <text x="530" y="140" font-size="12" fill="#999">Works well when your data resembles training distribution.</text>
+
+      <!-- Path B: Fine-tuning card -->
+      <rect x="510" y="165" width="370" height="150" rx="14" fill="#f0fff4" stroke="#27ae60" stroke-width="2"/>
+      <text x="695" y="195" text-anchor="middle" font-size="20" font-weight="bold" fill="#2c3e50">2b. Fine-tuning</text>
+      <text x="695" y="215" text-anchor="middle" font-size="13" fill="#27ae60" font-weight="bold">Adapt the model to your domain</text>
+
+      <text x="530" y="240" font-size="13" font-weight="bold" fill="#1a1a2e">How:</text>
+      <text x="530" y="257" font-size="13" fill="#555">Retrain on a small sample of <tspan font-weight="bold">your</tspan> data.</text>
+      <text x="530" y="274" font-size="13" fill="#555">Full fine-tune, LoRA, or frozen backbone + head.</text>
+
+      <text x="530" y="303" font-size="12" fill="#999">Best when your domain is niche or zero-shot isn't enough.</text>
+
+      <!-- Analogy bar -->
+      <rect x="20" y="345" width="860" height="80" rx="12" fill="#faf5ff" stroke="#9b59b6" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="55" y="378" font-size="17" font-weight="bold" fill="#8e44ad">Analogy:</text>
+      <text x="160" y="378" font-size="16" fill="#555">Medical student learns <tspan font-style="italic" fill="#3498db">general medicine</tspan> (anatomy, pharmacology)</text>
+      <text x="160" y="404" font-size="16" fill="#555">then either <tspan font-style="italic" fill="#e67e22">works in any hospital immediately</tspan> (zero-shot) or <tspan font-style="italic" fill="#27ae60">specializes in cardiology</tspan> (fine-tuning).</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>"Foundation-al" = one model, many tasks</h3>
+    <svg viewBox="0 0 900 460" style="max-width:95%; margin:0.2em auto; display:block;">
+
+      <!-- Central FM box -->
+      <rect x="220" y="10" width="460" height="100" rx="14" fill="#1a1a2e" stroke="none"/>
+      <text x="450" y="50" text-anchor="middle" fill="white" font-size="22" font-weight="bold">Pre-trained Foundation Model</text>
+      <text x="450" y="80" text-anchor="middle" fill="#aaa" font-size="15">Trained on billions of diverse time points</text>
+
+      <!-- Arrows fanning out (line + polygon) -->
+      <line x1="300" y1="110" x2="100" y2="195" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="95,205 95,192 108,198" fill="#3498db"/>
+      <line x1="370" y1="110" x2="280" y2="195" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="275,205 275,192 288,198" fill="#3498db"/>
+      <line x1="450" y1="110" x2="450" y2="195" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="450,210 443,196 457,196" fill="#3498db"/>
+      <line x1="530" y1="110" x2="620" y2="195" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="625,205 612,192 625,198" fill="#3498db"/>
+      <line x1="600" y1="110" x2="800" y2="195" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="805,205 792,192 805,198" fill="#3498db"/>
+
+      <!-- Task boxes — larger -->
+      <rect x="10" y="210" width="180" height="80" rx="10" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="100" y="245" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">Forecasting</text>
+      <text x="100" y="270" text-anchor="middle" fill="#666" font-size="13">energy demand, sales</text>
+
+      <rect x="200" y="210" width="180" height="80" rx="10" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="290" y="245" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">Anomaly Detection</text>
+      <text x="290" y="270" text-anchor="middle" fill="#666" font-size="13">sensor outliers, fraud</text>
+
+      <rect x="390" y="210" width="160" height="80" rx="10" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="470" y="245" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">Classification</text>
+      <text x="470" y="270" text-anchor="middle" fill="#666" font-size="13">activity, diagnosis</text>
+
+      <rect x="560" y="210" width="160" height="80" rx="10" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="640" y="245" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">Imputation</text>
+      <text x="640" y="270" text-anchor="middle" fill="#666" font-size="13">fill sensor gaps</text>
+
+      <rect x="730" y="210" width="160" height="80" rx="10" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="810" y="245" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">Generation</text>
+      <text x="810" y="270" text-anchor="middle" fill="#666" font-size="13">synthetic data, augment</text>
+
+      <!-- Fine-tune or zero-shot reminder -->
+      <rect x="220" y="340" width="460" height="50" rx="8" fill="#f0fff4" stroke="#2ecc71" stroke-width="2"/>
+      <text x="450" y="372" text-anchor="middle" fill="#27ae60" font-size="16" font-weight="bold">Each task via zero-shot or fine-tuning &mdash; same backbone</text>
+
+      <!-- IBM example -->
+      <text x="450" y="440" text-anchor="middle" fill="#888" font-size="15" font-style="italic">Precedent: IBM-NASA geospatial FM &mdash; one model for floods, crops, wildfires</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>But how do you feed a time series to a transformer?</h3>
+    <p style="font-size:0.75em; margin-bottom:0.5em;">Transformers were built for <strong>text</strong> &mdash; sequences of discrete words. Time series are <strong>continuous signals</strong> with no natural token boundaries.</p>
+    <svg viewBox="0 0 900 230" style="max-width:90%; margin:0.3em auto; display:block;">
+      <!-- Left: Transformer expects tokens -->
+      <text x="200" y="24" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">What a transformer expects</text>
+      <rect x="40" y="36" width="70" height="38" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="75" y="60" text-anchor="middle" font-size="14" fill="#2980b9">Token</text>
+      <rect x="120" y="36" width="70" height="38" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="155" y="60" text-anchor="middle" font-size="14" fill="#2980b9">Token</text>
+      <rect x="200" y="36" width="70" height="38" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="235" y="60" text-anchor="middle" font-size="14" fill="#2980b9">Token</text>
+      <rect x="280" y="36" width="70" height="38" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="315" y="60" text-anchor="middle" font-size="14" fill="#2980b9">Token</text>
+      <text x="200" y="96" text-anchor="middle" fill="#888" font-size="12">Discrete, bounded, countable</text>
+
+      <!-- Center: big question mark -->
+      <text x="450" y="68" text-anchor="middle" fill="#e74c3c" font-size="56" font-weight="bold">?</text>
+
+      <!-- Right: Continuous wave -->
+      <text x="700" y="24" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">What time series looks like</text>
+      <path d="M530,58 C555,28 580,78 605,42 C630,12 655,72 680,38 C705,8 730,68 755,42 C780,22 805,62 830,46 C855,32 870,55 880,46" fill="none" stroke="#2c3e50" stroke-width="3"/>
+      <text x="700" y="96" text-anchor="middle" fill="#888" font-size="12">Continuous, no boundaries, infinite precision</text>
+
+      <!-- Bottom: the challenge -->
+      <rect x="200" y="116" width="500" height="65" rx="12" fill="#fff3f3" stroke="#e74c3c" stroke-width="2"/>
+      <text x="450" y="143" text-anchor="middle" fill="#c0392b" font-size="16" font-weight="bold">The core engineering challenge</text>
+      <text x="450" y="166" text-anchor="middle" fill="#666" font-size="14">How do you turn a continuous signal into discrete tokens?</text>
+
+      <!-- Two approaches -->
+      <text x="450" y="212" text-anchor="middle" font-size="15" fill="#555">Two approaches emerged: <tspan fill="#3498db" font-weight="bold">bin the values</tspan> (Chronos) or <tspan fill="#2ecc71" font-weight="bold">group into patches</tspan> (TimesFM)</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The key insight</h3>
+    <svg viewBox="0 0 900 380" style="max-width:95%; margin:0.2em auto; display:block;">
+
+      <!-- ===== TOP ROW: the parallel ===== -->
+      <!-- Text card -->
+      <rect x="20" y="10" width="400" height="150" rx="12" fill="#f0f7ff" stroke="#3498db" stroke-width="1.5"/>
+      <text x="220" y="38" text-anchor="middle" fill="#2980b9" font-size="18" font-weight="bold">Text</text>
+      <rect x="50" y="52" width="340" height="32" rx="6" fill="#fff" stroke="#ddd"/>
+      <text x="220" y="74" text-anchor="middle" fill="#555" font-size="14">"The cat sat on the mat"</text>
+      <!-- Token boxes -->
+      <g>
+        <rect x="52" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="77" y="117" text-anchor="middle" font-size="12" fill="#2980b9">The</text>
+        <rect x="108" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="133" y="117" text-anchor="middle" font-size="12" fill="#2980b9">cat</text>
+        <rect x="164" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="189" y="117" text-anchor="middle" font-size="12" fill="#2980b9">sat</text>
+        <rect x="220" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="245" y="117" text-anchor="middle" font-size="12" fill="#2980b9">on</text>
+        <rect x="276" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="301" y="117" text-anchor="middle" font-size="12" fill="#2980b9">the</text>
+        <rect x="332" y="98" width="50" height="28" rx="5" fill="#eaf4fd" stroke="#3498db" stroke-width="1.2"/>
+        <text x="357" y="117" text-anchor="middle" font-size="12" fill="#2980b9">mat</text>
+      </g>
+      <text x="220" y="148" text-anchor="middle" fill="#27ae60" font-size="13" font-weight="bold">Words are natural tokens</text>
+
+      <!-- Time Series card -->
+      <rect x="480" y="10" width="400" height="150" rx="12" fill="#fff5f5" stroke="#e74c3c" stroke-width="1.5"/>
+      <text x="680" y="38" text-anchor="middle" fill="#e74c3c" font-size="18" font-weight="bold">Time Series</text>
+      <rect x="510" y="52" width="340" height="32" rx="6" fill="#fff" stroke="#ddd"/>
+      <text x="680" y="74" text-anchor="middle" fill="#555" font-size="14">[112, 118, 132, 129, 121, 135...]</text>
+      <!-- Continuous wave -->
+      <path d="M530,114 C548,96 566,126 584,104 C602,82 620,122 638,100 C656,80 674,118 692,98 C710,84 728,112 746,96 C764,82 782,108 800,94 C818,84 830,100 840,96" fill="none" stroke="#c0392b" stroke-width="2.5" opacity="0.5"/>
+      <text x="680" y="148" text-anchor="middle" fill="#e74c3c" font-size="13" font-weight="bold">No natural boundaries!</text>
+
+      <!-- Center "vs" -->
+      <text x="450" y="92" text-anchor="middle" fill="#aaa" font-size="24" font-weight="bold">vs</text>
+
+      <!-- ===== BOTTOM: the two solutions ===== -->
+      <!-- Arrow from problem to solutions -->
+      <line x1="450" y1="170" x2="450" y2="200" stroke="#888" stroke-width="2"/>
+      <polygon points="450,210 443,200 457,200" fill="#888"/>
+      <text x="450" y="234" text-anchor="middle" fill="#1a1a2e" font-size="17" font-weight="bold">Two solutions emerged:</text>
+
+      <!-- Solution A: Chronos -->
+      <rect x="40" y="252" width="380" height="110" rx="12" fill="#eaf4fd" stroke="#3498db" stroke-width="2"/>
+      <text x="230" y="280" text-anchor="middle" fill="#2980b9" font-size="17" font-weight="bold">Chronos: Tokenization</text>
+      <text x="230" y="304" text-anchor="middle" fill="#555" font-size="14">Bin continuous values into discrete tokens</text>
+      <text x="230" y="324" text-anchor="middle" fill="#888" font-size="13">18.3 &rarr; bin #42 &nbsp;&nbsp; 19.1 &rarr; bin #44</text>
+      <text x="230" y="348" text-anchor="middle" fill="#2980b9" font-size="12">Then feed tokens to a T5 language model</text>
+
+      <!-- Solution B: TimesFM -->
+      <rect x="480" y="252" width="380" height="110" rx="12" fill="#f0fff4" stroke="#2ecc71" stroke-width="2"/>
+      <text x="670" y="280" text-anchor="middle" fill="#27ae60" font-size="17" font-weight="bold">TimesFM: Patching</text>
+      <text x="670" y="304" text-anchor="middle" fill="#555" font-size="14">Group 32 values into "patches" (mini-windows)</text>
+      <text x="670" y="324" text-anchor="middle" fill="#888" font-size="13">[v1...v32] &rarr; Patch 1 &nbsp;&nbsp; [v33...v64] &rarr; Patch 2</text>
+      <text x="670" y="348" text-anchor="middle" fill="#27ae60" font-size="12">Each patch becomes one token for the transformer</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>Chronos: Tokenization</h3>
+    <p class="medium">Turn continuous values into discrete "bins" &mdash; like rounding to the nearest word.</p>
+    <svg viewBox="0 0 900 400" style="max-width:95%; margin:0.2em auto; display:block;">
+
+      <!-- Step 1: Raw values -->
+      <text x="110" y="30" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">1. Raw values</text>
+      <rect x="10" y="45" width="200" height="55" rx="8" fill="#f8f9fa" stroke="#ccc"/>
+      <text x="110" y="80" text-anchor="middle" font-size="16" fill="#333" font-family="monospace">18.3  19.1  22.7  21.5</text>
+
+      <!-- Arrow 1 -->
+      <line x1="215" y1="72" x2="250" y2="72" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="260,72 250,65 250,79" fill="#3498db"/>
+
+      <!-- Step 2: Binned -->
+      <text x="365" y="30" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">2. Quantize to bins</text>
+      <g>
+        <rect x="268" y="45" width="55" height="55" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="1.5"/>
+        <text x="295" y="80" text-anchor="middle" font-size="16" fill="#2980b9" font-weight="bold">#42</text>
+        <rect x="328" y="45" width="55" height="55" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="1.5"/>
+        <text x="355" y="80" text-anchor="middle" font-size="16" fill="#2980b9" font-weight="bold">#44</text>
+        <rect x="388" y="45" width="55" height="55" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="1.5"/>
+        <text x="415" y="80" text-anchor="middle" font-size="16" fill="#2980b9" font-weight="bold">#55</text>
+        <rect x="448" y="45" width="55" height="55" rx="8" fill="#eaf4fd" stroke="#3498db" stroke-width="1.5"/>
+        <text x="475" y="80" text-anchor="middle" font-size="16" fill="#2980b9" font-weight="bold">#51</text>
+      </g>
+
+      <!-- Arrow 2 -->
+      <line x1="508" y1="72" x2="530" y2="72" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="540,72 530,65 530,79" fill="#3498db"/>
+
+      <!-- Step 3: T5 model -->
+      <text x="625" y="30" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">3. Language model (T5)</text>
+      <rect x="545" y="45" width="160" height="55" rx="12" fill="#1a1a2e"/>
+      <text x="625" y="80" text-anchor="middle" font-size="16" fill="white">Predict next tokens</text>
+
+      <!-- Arrow 3 -->
+      <line x1="710" y1="72" x2="732" y2="72" stroke="#3498db" stroke-width="2.5"/>
+      <polygon points="742,72 732,65 732,79" fill="#3498db"/>
+
+      <!-- Step 4: Output bins -->
+      <text x="805" y="30" text-anchor="middle" fill="#1a1a2e" font-size="16" font-weight="bold">4. Predicted bins</text>
+      <rect x="750" y="45" width="50" height="55" rx="8" fill="#f0fff4" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="775" y="80" text-anchor="middle" font-size="16" fill="#27ae60" font-weight="bold">#48</text>
+      <rect x="808" y="45" width="50" height="55" rx="8" fill="#f0fff4" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="833" y="80" text-anchor="middle" font-size="16" fill="#27ae60" font-weight="bold">#53</text>
+
+      <!-- Arrow down to decoded values -->
+      <line x1="805" y1="105" x2="805" y2="140" stroke="#2ecc71" stroke-width="2.5"/>
+      <polygon points="805,150 798,140 812,140" fill="#2ecc71"/>
+
+      <!-- Step 5: Decoded -->
+      <rect x="720" y="155" width="170" height="50" rx="8" fill="#f0fff4" stroke="#2ecc71"/>
+      <text x="805" y="186" text-anchor="middle" font-size="17" fill="#27ae60" font-family="monospace" font-weight="bold">20.1  22.0  ...</text>
+      <text x="805" y="228" text-anchor="middle" font-size="14" fill="#888">5. Convert back to numbers</text>
+
+      <!-- Bottom: the key insight -->
+      <rect x="120" y="290" width="660" height="80" rx="10" fill="#fffbeb" stroke="#f39c12" stroke-width="2"/>
+      <text x="450" y="325" text-anchor="middle" font-size="17" fill="#333">The trick: continuous numbers &rarr; discrete tokens &rarr; language model &rarr; numbers</text>
+      <text x="450" y="352" text-anchor="middle" font-size="15" fill="#888">Reuses the exact same architecture that powers language models</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>TimesFM: Patching</h3>
+    <p class="medium">Group 32 consecutive values into "patches" &mdash; like reading word-by-word instead of letter-by-letter. Each patch captures local patterns; attention connects them globally. <strong>Same idea</strong> as Vision Transformers (ViT).</p>
+    <svg viewBox="0 0 900 420" style="max-width:95%; margin:0.2em auto; display:block;">
+      <!-- LEFT: Image patching (ViT) -->
+      <text x="180" y="28" text-anchor="middle" fill="#1a1a2e" font-size="18" font-weight="bold">Vision Transformer (ViT)</text>
+
+      <!-- Image grid -->
+      <rect x="60" y="45" width="240" height="260" rx="4" fill="#f0f0f0" stroke="#ccc"/>
+      <!-- Patch grid lines -->
+      <line x1="120" y1="45" x2="120" y2="305" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="180" y1="45" x2="180" y2="305" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="240" y1="45" x2="240" y2="305" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="60" y1="110" x2="300" y2="110" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="60" y1="175" x2="300" y2="175" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <line x1="60" y1="240" x2="300" y2="240" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+
+      <!-- Patch labels -->
+      <text x="90" y="75" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">P1</text>
+      <text x="150" y="75" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">P2</text>
+      <text x="210" y="75" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">P3</text>
+      <text x="270" y="75" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">P4</text>
+
+      <!-- Simple "image" content: mountain + sun -->
+      <circle cx="250" cy="145" r="24" fill="#f39c12" opacity="0.3"/>
+      <polygon points="100,290 170,160 240,290" fill="#2ecc71" opacity="0.2"/>
+      <polygon points="180,290 230,185 280,290" fill="#27ae60" opacity="0.2"/>
+
+      <text x="180" y="332" text-anchor="middle" fill="#888" font-size="15">Split image into 4&times;4 grid</text>
+      <text x="180" y="354" text-anchor="middle" fill="#888" font-size="15">Each patch = one "token"</text>
+
+      <!-- CENTER: equals / same idea -->
+      <text x="390" y="170" text-anchor="middle" fill="#e74c3c" font-size="26" font-weight="bold">Same</text>
+      <text x="390" y="200" text-anchor="middle" fill="#e74c3c" font-size="26" font-weight="bold">idea!</text>
+
+      <!-- RIGHT: Time series patching -->
+      <text x="680" y="28" text-anchor="middle" fill="#1a1a2e" font-size="18" font-weight="bold">TimesFM (Patching)</text>
+
+      <!-- Time series line -->
+      <rect x="480" y="45" width="400" height="260" rx="4" fill="#f8f9fa" stroke="#ccc"/>
+      <polyline points="490,254 510,239 530,218 550,232 570,211 590,182 610,196 630,218 650,203 670,175 690,160 710,182 730,167 750,139 770,153 790,175 810,146 830,124 850,139 865,131" fill="none" stroke="#2c3e50" stroke-width="2.5"/>
+
+      <!-- Patch boundaries -->
+      <rect x="490" y="45" width="96" height="260" rx="0" fill="#2ecc71" opacity="0.12" stroke="#2ecc71" stroke-width="2" stroke-dasharray="4,3"/>
+      <rect x="586" y="45" width="96" height="260" rx="0" fill="#3498db" opacity="0.12" stroke="#3498db" stroke-width="2" stroke-dasharray="4,3"/>
+      <rect x="682" y="45" width="96" height="260" rx="0" fill="#f39c12" opacity="0.12" stroke="#f39c12" stroke-width="2" stroke-dasharray="4,3"/>
+      <rect x="778" y="45" width="96" height="260" rx="0" fill="#e74c3c" opacity="0.12" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4,3"/>
+
+      <!-- Patch labels -->
+      <text x="538" y="70" text-anchor="middle" fill="#2ecc71" font-size="14" font-weight="bold">Patch 1</text>
+      <text x="634" y="70" text-anchor="middle" fill="#3498db" font-size="14" font-weight="bold">Patch 2</text>
+      <text x="730" y="70" text-anchor="middle" fill="#f39c12" font-size="14" font-weight="bold">Patch 3</text>
+      <text x="826" y="70" text-anchor="middle" fill="#e74c3c" font-size="14" font-weight="bold">Patch 4</text>
+
+      <!-- Size label -->
+      <line x1="490" y1="320" x2="586" y2="320" stroke="#666" stroke-width="1"/>
+      <line x1="490" y1="316" x2="490" y2="324" stroke="#666" stroke-width="1"/>
+      <line x1="586" y1="316" x2="586" y2="324" stroke="#666" stroke-width="1"/>
+      <text x="538" y="340" text-anchor="middle" fill="#888" font-size="14">32 values</text>
+
+      <text x="680" y="368" text-anchor="middle" fill="#888" font-size="15">Split series into fixed-length windows</text>
+      <text x="680" y="390" text-anchor="middle" fill="#888" font-size="15">Each patch = one "token"</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The paradigm shift</h3>
+    <svg viewBox="0 0 900 440" style="max-width:95%; margin:0.2em auto; display:block;">
+      <!-- LEFT: Before -->
+      <text x="215" y="26" text-anchor="middle" fill="#e74c3c" font-size="16" font-weight="bold">Before: one model per task per dataset</text>
+      <rect x="10" y="38" width="410" height="382" rx="10" fill="#fff5f5" stroke="#fcc"/>
+
+      <!-- Column headers -->
+      <text x="100" y="62" text-anchor="middle" fill="#666" font-size="11">Dataset A</text>
+      <text x="190" y="62" text-anchor="middle" fill="#666" font-size="11">Dataset B</text>
+      <text x="280" y="62" text-anchor="middle" fill="#666" font-size="11">Dataset C</text>
+      <text x="370" y="62" text-anchor="middle" fill="#666" font-size="11">Dataset D</text>
+
+      <!-- Row labels -->
+      <text x="42" y="108" text-anchor="middle" fill="#888" font-size="10" transform="rotate(-90 42 108)">Forecast</text>
+      <text x="42" y="188" text-anchor="middle" fill="#888" font-size="10" transform="rotate(-90 42 188)">Anomaly</text>
+      <text x="42" y="268" text-anchor="middle" fill="#888" font-size="10" transform="rotate(-90 42 268)">Classify</text>
+      <text x="42" y="348" text-anchor="middle" fill="#888" font-size="10" transform="rotate(-90 42 348)">Impute</text>
+
+      <!-- 4x4 grid of models -->
+      <g fill="#fce4ec" stroke="#e74c3c" stroke-width="1.2">
+        <rect x="66" y="78" width="68" height="48" rx="5"/><rect x="156" y="78" width="68" height="48" rx="5"/>
+        <rect x="246" y="78" width="68" height="48" rx="5"/><rect x="336" y="78" width="68" height="48" rx="5"/>
+        <rect x="66" y="158" width="68" height="48" rx="5"/><rect x="156" y="158" width="68" height="48" rx="5"/>
+        <rect x="246" y="158" width="68" height="48" rx="5"/><rect x="336" y="158" width="68" height="48" rx="5"/>
+        <rect x="66" y="238" width="68" height="48" rx="5"/><rect x="156" y="238" width="68" height="48" rx="5"/>
+        <rect x="246" y="238" width="68" height="48" rx="5"/><rect x="336" y="238" width="68" height="48" rx="5"/>
+        <rect x="66" y="318" width="68" height="48" rx="5"/><rect x="156" y="318" width="68" height="48" rx="5"/>
+        <rect x="246" y="318" width="68" height="48" rx="5"/><rect x="336" y="318" width="68" height="48" rx="5"/>
+      </g>
+      <g font-size="10" fill="#c0392b" text-anchor="middle">
+        <text x="100" y="108">model</text><text x="190" y="108">model</text>
+        <text x="280" y="108">model</text><text x="370" y="108">model</text>
+        <text x="100" y="188">model</text><text x="190" y="188">model</text>
+        <text x="280" y="188">model</text><text x="370" y="188">model</text>
+        <text x="100" y="268">model</text><text x="190" y="268">model</text>
+        <text x="280" y="268">model</text><text x="370" y="268">model</text>
+        <text x="100" y="348">model</text><text x="190" y="348">model</text>
+        <text x="280" y="348">model</text><text x="370" y="348">model</text>
+      </g>
+
+      <text x="215" y="402" text-anchor="middle" fill="#e74c3c" font-size="15" font-weight="bold">16 separate models</text>
+
+      <!-- CENTER: arrow -->
+      <text x="450" y="220" text-anchor="middle" fill="#333" font-size="32">&rarr;</text>
+
+      <!-- RIGHT: After -->
+      <text x="685" y="26" text-anchor="middle" fill="#2ecc71" font-size="16" font-weight="bold">After: one backbone + task heads</text>
+      <rect x="480" y="38" width="410" height="382" rx="10" fill="#f0fff4" stroke="#b7e4c7"/>
+
+      <!-- Single backbone -->
+      <rect x="575" y="65" width="220" height="90" rx="12" fill="#1a1a2e"/>
+      <text x="685" y="102" text-anchor="middle" fill="white" font-size="15" font-weight="bold">Foundation Model</text>
+      <text x="685" y="126" text-anchor="middle" fill="#aaa" font-size="12">Pre-trained once</text>
+
+      <!-- Connector -->
+      <line x1="685" y1="155" x2="685" y2="172" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="545" y1="172" x2="830" y2="172" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="545" y1="172" x2="545" y2="210" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="640" y1="172" x2="640" y2="210" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="735" y1="172" x2="735" y2="210" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="830" y1="172" x2="830" y2="210" stroke="#2ecc71" stroke-width="1.5"/>
+
+      <!-- 4 task heads — evenly spaced, no overlap -->
+      <rect x="500" y="215" width="90" height="50" rx="8" fill="#d5f5e3" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="545" y="245" text-anchor="middle" font-size="12" fill="#27ae60" font-weight="bold">Forecast</text>
+      <rect x="595" y="215" width="90" height="50" rx="8" fill="#d5f5e3" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="640" y="245" text-anchor="middle" font-size="12" fill="#27ae60" font-weight="bold">Anomaly</text>
+      <rect x="690" y="215" width="90" height="50" rx="8" fill="#d5f5e3" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="735" y="245" text-anchor="middle" font-size="12" fill="#27ae60" font-weight="bold">Classify</text>
+      <rect x="785" y="215" width="90" height="50" rx="8" fill="#d5f5e3" stroke="#2ecc71" stroke-width="1.5"/>
+      <text x="830" y="245" text-anchor="middle" font-size="12" fill="#27ae60" font-weight="bold">Impute</text>
+
+      <!-- Works on all datasets -->
+      <text x="685" y="300" text-anchor="middle" fill="#888" font-size="13">Works on Dataset A, B, C, D...</text>
+      <text x="685" y="322" text-anchor="middle" fill="#888" font-size="13">...and any new dataset (zero-shot)</text>
+
+      <text x="685" y="402" text-anchor="middle" fill="#2ecc71" font-size="15" font-weight="bold">1 backbone + 4 heads</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>Same backbone, different heads</h3>
+    <svg viewBox="0 0 900 400" style="max-width:95%; margin:0.2em auto; display:block;">
+      <!-- Central backbone -->
+      <rect x="275" y="10" width="350" height="80" rx="12" fill="#1a1a2e"/>
+      <text x="450" y="48" text-anchor="middle" fill="white" font-size="18" font-weight="bold">Pre-trained Backbone</text>
+      <text x="450" y="72" text-anchor="middle" fill="#aaa" font-size="12">trained once on diverse time series</text>
+
+      <!-- Connector lines (no bar) -->
+      <line x1="450" y1="90" x2="450" y2="108" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="126" y1="108" x2="774" y2="108" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="126" y1="108" x2="126" y2="135" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="288" y1="108" x2="288" y2="135" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="450" y1="108" x2="450" y2="135" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="612" y1="108" x2="612" y2="135" stroke="#1a1a2e" stroke-width="1.5"/>
+      <line x1="774" y1="108" x2="774" y2="135" stroke="#1a1a2e" stroke-width="1.5"/>
+
+      <!-- Forecasting -->
+      <rect x="51" y="140" width="150" height="140" rx="8" fill="#fff" stroke="#2ecc71" stroke-width="2"/>
+      <text x="126" y="165" text-anchor="middle" fill="#1a1a2e" font-size="14" font-weight="bold">Forecasting</text>
+      <line x1="126" y1="180" x2="126" y2="265" stroke="#ccc" stroke-width="1" stroke-dasharray="2,2"/>
+      <polyline points="71,255 86,248 101,240 116,232 126,225" fill="none" stroke="#95a5a6" stroke-width="2"/>
+      <polyline points="126,225 141,215 156,205 171,195 186,185" fill="none" stroke="#2ecc71" stroke-width="2" stroke-dasharray="5,3"/>
+
+      <!-- Anomaly Detection -->
+      <rect x="213" y="140" width="150" height="140" rx="8" fill="#fff" stroke="#e74c3c" stroke-width="2"/>
+      <text x="288" y="165" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="bold">Anomaly Detection</text>
+      <polyline points="233,248 253,245 273,248 288,244 303,210 318,244 338,248 348,245" fill="none" stroke="#95a5a6" stroke-width="2"/>
+      <circle cx="303" cy="210" r="9" fill="none" stroke="#e74c3c" stroke-width="2.5"/>
+      <text x="303" y="204" text-anchor="middle" fill="#e74c3c" font-size="11" font-weight="bold">!</text>
+
+      <!-- Classification -->
+      <rect x="375" y="140" width="150" height="140" rx="8" fill="#fff" stroke="#3498db" stroke-width="2"/>
+      <text x="450" y="165" text-anchor="middle" fill="#1a1a2e" font-size="14" font-weight="bold">Classification</text>
+      <polyline points="400,215 415,207 430,215 445,207 460,215 475,207 490,215" fill="none" stroke="#3498db" stroke-width="2"/>
+      <text x="450" y="205" text-anchor="middle" fill="#3498db" font-size="11">Type A</text>
+      <polyline points="400,255 415,247 423,260 445,235 467,260 490,247" fill="none" stroke="#f39c12" stroke-width="2"/>
+      <text x="450" y="245" text-anchor="middle" fill="#f39c12" font-size="11">Type B</text>
+
+      <!-- Imputation -->
+      <rect x="537" y="140" width="150" height="140" rx="8" fill="#fff" stroke="#f39c12" stroke-width="2"/>
+      <text x="612" y="165" text-anchor="middle" fill="#1a1a2e" font-size="14" font-weight="bold">Imputation</text>
+      <polyline points="557,248 577,238 592,228" fill="none" stroke="#95a5a6" stroke-width="2"/>
+      <polyline points="592,228 607,220 622,224 637,216" fill="none" stroke="#f39c12" stroke-width="2" stroke-dasharray="4,3"/>
+      <polyline points="637,216 657,210 672,218" fill="none" stroke="#95a5a6" stroke-width="2"/>
+      <text x="612" y="260" text-anchor="middle" fill="#f39c12" font-size="11">filled gap</text>
+
+      <!-- Change Point Detection -->
+      <rect x="699" y="140" width="150" height="140" rx="8" fill="#fff" stroke="#9b59b6" stroke-width="2"/>
+      <text x="774" y="160" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="bold">Change Point</text>
+      <text x="774" y="176" text-anchor="middle" fill="#1a1a2e" font-size="13" font-weight="bold">Detection</text>
+      <polyline points="719,248 739,244 754,250 769,242" fill="none" stroke="#95a5a6" stroke-width="2"/>
+      <line x1="769" y1="215" x2="769" y2="265" stroke="#9b59b6" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <polyline points="769,228 784,224 804,230 819,222 834,228" fill="none" stroke="#95a5a6" stroke-width="2"/>
+
+      <!-- Zero-shot label -->
+      <rect x="275" y="310" width="350" height="48" rx="8" fill="#f0f7ff" stroke="#3498db" stroke-width="1.5"/>
+      <text x="450" y="341" text-anchor="middle" fill="#2980b9" font-size="16" font-weight="bold">Zero-shot: works on unseen data!</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The main players</h3>
+    <p style="font-size:0.8em; margin-bottom:0.4em;">All released in 2023&ndash;2024. The field went from zero to a dozen competitive models in under two years:</p>
+    <table style="font-size: 0.7em; width: 95%;">
+      <tr>
+        <th>Model</th>
+        <th>By</th>
+        <th>Architecture</th>
+        <th>Key Feature</th>
+        <th>Open?</th>
+      </tr>
+      <tr>
+        <td><strong>Chronos</strong></td>
+        <td>Amazon</td>
+        <td>Adapted T5/GPT-2</td>
+        <td>Tokenizes values into bins; probabilistic</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>TimesFM</strong></td>
+        <td>Google</td>
+        <td>Decoder-only</td>
+        <td>Patch-based; strong zero-shot</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>MOMENT</strong></td>
+        <td>CMU</td>
+        <td>Encoder-only</td>
+        <td>"Time Series Pile" pre-training</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Moirai</strong></td>
+        <td>Salesforce</td>
+        <td>Encoder</td>
+        <td>Multivariate; handles covariates</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Timer</strong></td>
+        <td>Tsinghua</td>
+        <td>Decoder-only</td>
+        <td>Unified S3 format; up to 1B time points</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>TimeGPT</strong></td>
+        <td>Nixtla</td>
+        <td>Enc-Decoder</td>
+        <td>First commercial TSFM; simple API</td>
+        <td>No (API)</td>
+      </tr>
+      <tr>
+        <td><strong>Tiny Time Mixers</strong></td>
+        <td>IBM</td>
+        <td>Non-Transformer</td>
+        <td>Ultra-lightweight (1M params)</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td><strong>Lag-Llama</strong></td>
+        <td>ServiceNow</td>
+        <td>Decoder (LLaMA)</td>
+        <td>Probabilistic; lagged features</td>
+        <td>Yes</td>
+      </tr>
+    </table>
+    <p style="font-size:0.7em; color:#888; margin-top:0.6em;">Most available via HuggingFace. Chronos has ~10M downloads/month and is the most popular. TimeGPT (Nixtla) is the main API/SaaS option &mdash; simplest to use, but closed-source. For multivariate needs: Moirai, Timer-XL, Tiny Time Mixers.</p>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- 5. LIVE DEMO -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>Live Demo</h2>
+    <p class="subtitle">AutoARIMA vs. Chronos vs. TimesFM</p>
+  </section>
+
+  <section>
+    <h3>What we'll compare</h3>
+    <p style="font-size:0.75em;">Three fundamentally different approaches to the same forecasting problem, running on the same data, on a laptop CPU:</p>
+    <table>
+      <tr>
+        <th>Approach</th>
+        <th>Lines of Code</th>
+        <th>Training?</th>
+        <th>Domain Knowledge?</th>
+      </tr>
+      <tr>
+        <td style="color:var(--accent);"><strong>AutoARIMA</strong></td>
+        <td style="text-align:center;">~4</td>
+        <td style="text-align:center;">Yes (fit on data)</td>
+        <td style="text-align:center;"><code>season_length=12</code></td>
+      </tr>
+      <tr>
+        <td style="color:var(--blue);"><strong>Chronos</strong></td>
+        <td style="text-align:center;">~3</td>
+        <td style="text-align:center;"><strong>No</strong> (zero-shot)</td>
+        <td style="text-align:center;"><strong>None</strong></td>
+      </tr>
+      <tr>
+        <td style="color:var(--green);"><strong>TimesFM</strong></td>
+        <td style="text-align:center;">~5</td>
+        <td style="text-align:center;"><strong>No</strong> (zero-shot)</td>
+        <td style="text-align:center;"><strong>None</strong></td>
+      </tr>
+    </table>
+    <p style="font-size:0.7em; margin-top:0.5em; color:#555;">The foundation models download pre-trained weights from HuggingFace (~185MB for Chronos, ~800MB for TimesFM) and run inference immediately. No training loop, no hyperparameter search.</p>
+  </section>
+
+  <section>
+    <h3>Datasets</h3>
+    <p style="font-size:0.75em;">We test on two very different datasets to see how well the models generalize:</p>
+    <div class="columns">
+      <div class="col" style="text-align:center;">
+        <div style="font-size:1.3em; font-weight:bold;">AirPassengers</div>
+        <p class="medium">144 monthly observations (1949-1960)<br>Classic textbook dataset: clear upward trend + strong yearly seasonality<br>Forecast: <strong>24 months ahead</strong></p>
+        <p style="font-size:0.65em; color:#888;">"The easy test" &mdash; clean, well-behaved, universally known</p>
+      </div>
+      <div class="col" style="text-align:center;">
+        <div style="font-size:1.3em; font-weight:bold;">ETTh1</div>
+        <p class="medium">14,400 hourly observations (2016-2018)<br>Oil temperature from an electricity transformer in China. Noisy, irregular, real-world sensor data<br>Forecast: <strong>168 hours (1 week) ahead</strong></p>
+        <p style="font-size:0.65em; color:#888;">"The hard test" &mdash; messy, non-stationary, real-world</p>
+      </div>
+    </div>
+    <p style="font-size:0.8em; text-align:center; margin-top:0.5em;"><strong>Key:</strong> same model instances, same code, no changes between datasets.</p>
+  </section>
+
+  <section>
+    <h3>The code: side by side</h3>
+    <div style="display:flex; flex-direction:column; gap:0.45em; margin-top:0.3em;">
+
+      <!-- AutoARIMA -->
+      <div style="display:flex; align-items:stretch; gap:0;">
+        <div style="background:#fff5f5; border-left:4px solid var(--accent); padding:0.35em 0.6em; display:flex; flex-direction:column; justify-content:center; min-width:9em; border-radius:6px 0 0 6px;">
+          <strong style="font-size:0.85em; color:var(--accent);">AutoARIMA</strong>
+          <span style="font-size:0.55em; color:#888; margin-top:0.2em;">Specify freq, season, params</span>
+        </div>
+        <div class="codeblock" style="font-size:0.5em; margin:0; border-radius:0 6px 6px 0; max-width:none; flex:1; padding:0.4em 0.7em;"><span class="kw">from</span> statsforecast <span class="kw">import</span> StatsForecast
+<span class="kw">from</span> statsforecast.models <span class="kw">import</span> AutoARIMA
+
+sf = StatsForecast(models=[AutoARIMA(<span class="fn">season_length</span>=<span class="str">12</span>)], freq=<span class="str">'MS'</span>)
+arima_fc = sf.<span class="fn">forecast</span>(df=df_train, h=<span class="str">24</span>)</div>
+      </div>
+
+      <!-- Chronos -->
+      <div style="display:flex; align-items:stretch; gap:0;">
+        <div style="background:#f0f7ff; border-left:4px solid var(--blue); padding:0.35em 0.6em; display:flex; flex-direction:column; justify-content:center; min-width:9em; border-radius:6px 0 0 6px;">
+          <strong style="font-size:0.85em; color:var(--blue);">Chronos</strong>
+          <span style="font-size:0.55em; color:#888; margin-top:0.2em;">Zero-shot, 185 MB</span>
+        </div>
+        <div class="codeblock" style="font-size:0.5em; margin:0; border-radius:0 6px 6px 0; max-width:none; flex:1; padding:0.4em 0.7em;"><span class="kw">from</span> chronos <span class="kw">import</span> ChronosPipeline
+
+pipeline = ChronosPipeline.<span class="fn">from_pretrained</span>(<span class="str">"amazon/chronos-t5-small"</span>)
+forecast = pipeline.<span class="fn">predict</span>(context, prediction_length=<span class="str">24</span>)</div>
+      </div>
+
+      <!-- TimesFM -->
+      <div style="display:flex; align-items:stretch; gap:0;">
+        <div style="background:#f0fff4; border-left:4px solid var(--green); padding:0.35em 0.6em; display:flex; flex-direction:column; justify-content:center; min-width:9em; border-radius:6px 0 0 6px;">
+          <strong style="font-size:0.85em; color:var(--green);">TimesFM</strong>
+          <span style="font-size:0.55em; color:#888; margin-top:0.2em;">Zero-shot, 800 MB</span>
+        </div>
+        <div class="codeblock" style="font-size:0.5em; margin:0; border-radius:0 6px 6px 0; max-width:none; flex:1; padding:0.4em 0.7em;"><span class="kw">from</span> timesfm <span class="kw">import</span> TimesFM_2p5_200M_torch, ForecastConfig
+
+tfm = TimesFM_2p5_200M_torch()
+tfm.<span class="fn">compile</span>(ForecastConfig(max_context=<span class="str">512</span>, max_horizon=<span class="str">128</span>))
+mean, q = tfm.<span class="fn">forecast</span>(horizon=<span class="str">24</span>, inputs=[data])</div>
+      </div>
+
+    </div>
+    <p style="font-size:0.5em; color:#888; margin-top:0.4em; text-align:center;">Foundation models need no frequency, season length, or parameter tuning &mdash; just raw data.</p>
+  </section>
+
+  <section>
+    <h3 style="text-align:center;">Let's switch to the notebook...</h3>
+    <p style="text-align:center; font-size:0.8em; color:#555;">
+      <code>demo.ipynb</code>
+    </p>
+    <p style="text-align:center; font-size:0.75em; color:#888; margin-top:1em;">
+      We'll run all three approaches live on the same data, see the forecasts, and compare error metrics side by side. Everything runs on CPU &mdash; no GPU needed.
+    </p>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- POST-DEMO: WHAT WE LEARNED -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>What We Learned</h2>
+    <p class="subtitle">Results, trade-offs, and what they mean</p>
+  </section>
+
+  <section>
+    <h3>Head-to-head results</h3>
+    <p style="font-size:0.65em; color:#666;">MAE = avg. absolute error (lower is better). MAPE = error as a percentage.</p>
+    <div class="columns" style="margin-top:0.3em; align-items:stretch;">
+      <div class="col">
+        <div style="background:#f8f9fa; border-radius:10px; padding:0.5em 0.7em; border-top:4px solid var(--orange);">
+          <strong style="font-size:0.85em;">AirPassengers &mdash; the easy test</strong>
+          <table style="font-size:0.55em; margin-top:0.3em;">
+            <tr><th>Model</th><th>MAE</th><th>RMSE</th><th>MAPE</th></tr>
+            <tr style="color:var(--accent);"><td><strong>AutoARIMA</strong></td><td>38.6</td><td>42.4</td><td>8.3%</td></tr>
+            <tr style="color:var(--blue);"><td>Chronos</td><td>67.1</td><td>72.8</td><td>14.6%</td></tr>
+            <tr style="color:var(--green);"><td>TimesFM</td><td>201.0</td><td>217.7</td><td>42.9%</td></tr>
+          </table>
+          <p style="font-size:0.6em; margin-top:0.3em;"><strong>ARIMA wins</strong> &mdash; but it was fitted on the data with domain knowledge (season_length, log transform). The FMs had zero tuning. Also: AirPassengers is likely in every training set.</p>
+        </div>
+      </div>
+      <div class="col">
+        <div style="background:#f8f9fa; border-radius:10px; padding:0.5em 0.7em; border-top:4px solid var(--blue);">
+          <strong style="font-size:0.85em;">ETTh1 &mdash; the hard test</strong>
+          <table style="font-size:0.55em; margin-top:0.3em;">
+            <tr><th>Model</th><th>MAE</th><th>RMSE</th></tr>
+            <tr style="color:var(--accent);"><td>AutoARIMA</td><td>0.402</td><td>0.448</td></tr>
+            <tr style="color:var(--blue);"><td><strong>Chronos</strong></td><td><strong>0.131</strong></td><td><strong>0.162</strong></td></tr>
+            <tr style="color:var(--green);"><td>TimesFM</td><td>0.207</td><td>0.266</td></tr>
+          </table>
+          <p style="font-size:0.6em; margin-top:0.3em;"><strong>The story flips.</strong> ARIMA goes flat immediately (linear assumptions fail). Chronos halves ARIMA's error &mdash; on data it has never seen. This is where the FM advantage is clear.</p>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:0.7em; margin-top:0.5em; text-align:center;">On well-understood data, traditional models may win. On new, unfamiliar data, FMs give you a strong baseline <strong>in minutes instead of days</strong>.</p>
+  </section>
+
+  <section>
+    <h3>The punchline</h3>
+    <div class="win" style="font-size:0.95em; text-align:center; border-left-width:6px;">
+      The foundation models required <strong>no training</strong>, <strong>no tuning</strong>, <strong>no domain knowledge</strong><br>
+      &mdash; and produced competitive (sometimes superior) forecasts.
+    </div>
+    <br>
+    <p style="font-size:0.8em; text-align:left;">What this means in practice:</p>
+    <ul style="font-size:0.75em;">
+      <li>On <strong>well-understood data</strong> where you have domain expertise, traditional models may still win</li>
+      <li>On <strong>new, unfamiliar data</strong> where you're starting from scratch, FMs give you a strong baseline in minutes instead of days</li>
+      <li>The same 3 lines of code worked on both datasets &mdash; no changes needed</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>What practitioners actually say</h3>
+    <p style="font-size:0.7em; margin-bottom:0.3em;">From Reddit r/MachineLearning, industry conversations, and real-world experience &mdash; the skepticism is healthy and often justified:</p>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>"My hand-crafted model still wins"</strong> &mdash; a well-tuned XGBoost or domain-specific model often beats foundation models on specific datasets. Traditional models leverage domain knowledge that FMs lack.
+    </div>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>"My data isn't in their training distribution"</strong> &mdash; proprietary or niche data (internal metrics, specialized sensors) leads to poor zero-shot performance. Unlike text, there's no "Common Crawl" equivalent for time series &mdash; training data is fragmented.
+    </div>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>"Explainability is a dealbreaker"</strong> &mdash; many business contexts need interpretable forecasts that can be explained to stakeholders. ARIMA coefficients are transparent; a 200M parameter neural network is a black box.
+    </div>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>"Multivariate support is maturing"</strong> &mdash; many models started univariate-only (MOMENT, Lag-Llama still are). Chronos-2 and TimesFM 2.5 recently added covariate/multivariate support, but cross-variable modeling is still catching up to univariate performance.
+    </div>
+  </section>
+
+  <section>
+    <h3>Deeper challenges</h3>
+    <p style="font-size:0.7em; margin-bottom:0.3em;">These are the more fundamental, open research questions:</p>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>No universal inductive bias</strong> &mdash; images all share visual structure (edges, textures). Text all shares language grammar. But time series from different domains (audio waveforms, stock prices, weather sensors) may share <em>nothing</em> in common. Is "time series" even a coherent category for pre-training?
+    </div>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>Uncertainty quantification</strong> &mdash; some models don't provide confidence intervals at all. When they do, it's hard to trace uncertainty back to data quality vs. model limitations vs. inherent randomness.
+    </div>
+    <div class="pain" style="margin-bottom:0.3em;">
+      <strong>Data leakage concerns</strong> &mdash; hard to verify if the FM was trained on the very dataset you're benchmarking on. AirPassengers is the most famous time series in existence &mdash; it's almost certainly in every training set.
+    </div>
+    <div class="pain">
+      <strong>Computational cost</strong> &mdash; the largest models (Time-MOE: 2.4B params) require significant resources. Meanwhile, ARIMA runs in milliseconds on a single CPU core. For real-time or edge applications, this matters.
+    </div>
+  </section>
+
+  <section>
+    <h3>So when should you use them?</h3>
+    <div class="columns">
+      <div class="col">
+        <div class="win">
+          <strong class="green">Good fit</strong>
+          <ul style="font-size:0.8em; margin-top:0.3em;">
+            <li><strong>Zero-shot on new datasets</strong> &mdash; no historical model to start from</li>
+            <li><strong>Rapid prototyping</strong> &mdash; get a baseline in minutes, not weeks</li>
+            <li><strong>No ML team available</strong> &mdash; 3 lines of code, no expertise required</li>
+            <li><strong>Diverse forecasting</strong> &mdash; hundreds of series across different domains</li>
+            <li><strong>Probabilistic forecasts</strong> &mdash; built-in confidence intervals</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col">
+        <div class="pain">
+          <strong class="highlight">Bad fit</strong>
+          <ul style="font-size:0.8em; margin-top:0.3em;">
+            <li><strong>Known physics</strong> &mdash; domain equations will beat any black box</li>
+            <li><strong>Need interpretability</strong> &mdash; stakeholders want to know <em>why</em></li>
+            <li><strong>Complex multivariate</strong> &mdash; most FMs are univariate only</li>
+            <li><strong>Edge / real-time</strong> &mdash; ARIMA runs in ms, FMs need more compute</li>
+            <li><strong>Highly specialized data</strong> &mdash; far from training distribution</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <p class="fragment" style="margin-top:0.6em; font-size:0.85em;">
+      <strong>Best strategy today:</strong> use FMs as a <span class="blue">strong baseline</span>. Compare against your tuned models. Fine-tune the FM if it shows promise. Don't choose &mdash; use both.
+    </p>
+  </section>
+
+  <section>
+    <h3>The counter-argument</h3>
+    <blockquote>
+      For the majority of users still running ARIMA or Prophet, a foundation model is a <strong>massive, easy upgrade</strong>.
+    </blockquote>
+    <p style="font-size:0.7em; color:#888;">&mdash; Nixtla (creators of TimeGPT)</p>
+    <p style="font-size:0.85em; margin-top:0.8em;">The bar isn't "beat the best ML team with years of domain expertise." It's "beat what most teams actually have in production today" &mdash; which is often a basic ARIMA, a Prophet model someone set up two years ago, or a spreadsheet with manual estimates.</p>
+    <p style="font-size:0.8em; margin-top:0.5em;">For those teams, a foundation model that takes 3 lines of code and produces competitive forecasts with confidence intervals is a <strong>genuine step change</strong> &mdash; even if it's not state-of-the-art on any specific benchmark.</p>
+  </section>
+
+  <section>
+    <h3>Wait &mdash; why did these just run on a laptop?</h3>
+    <p style="font-size:0.8em;">You just watched "foundation models" run inference on a CPU in seconds.</p>
+    <p style="font-size:0.8em; margin-top:0.3em;">But GPT-4 needs a <strong>data center</strong>. Stable Diffusion needs a <strong>GPU</strong>. What's different here?</p>
+    <div style="display:flex; justify-content:center; gap:3em; margin:1.2em 0;">
+      <div style="text-align:center;">
+        <div style="font-size:3em;">&#128187;</div>
+        <div style="font-size:0.9em; font-weight:bold;">Chronos-Small</div>
+        <div style="font-size:0.75em; color:#3498db; font-weight:bold;">46M parameters</div>
+        <div style="font-size:0.65em; color:#888;">~75 MB download</div>
+      </div>
+      <div style="text-align:center; align-self:center;">
+        <div style="font-size:2em; color:#888;">vs</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:3em;">&#127981;</div>
+        <div style="font-size:0.9em; font-weight:bold;">GPT-4</div>
+        <div style="font-size:0.75em; color:#e74c3c; font-weight:bold;">~1.7T parameters</div>
+        <div style="font-size:0.65em; color:#888;">Needs a data center</div>
+      </div>
+    </div>
+    <p style="font-size:0.85em; text-align:center;">That's a <span class="highlight">37,000x</span> difference. Why?</p>
+  </section>
+
+  <section>
+    <h3>Model size comparison</h3>
+    <svg viewBox="0 0 900 350" style="max-width:85%; margin:0.3em auto; display:block;">
+      <!-- Y axis -->
+      <line x1="200" y1="30" x2="200" y2="310" stroke="#ccc" stroke-width="1"/>
+
+      <!-- Bars (log-ish scale for readability, but labeled honestly) -->
+      <!-- Chronos-Tiny: 8M -->
+      <rect x="205" y="40" width="8" height="40" rx="4" fill="#3498db"/>
+      <text x="195" y="65" text-anchor="end" fill="#333" font-size="13">Chronos-Tiny</text>
+      <text x="220" y="65" fill="#3498db" font-size="13" font-weight="bold">8M</text>
+
+      <!-- Chronos-Small: 46M -->
+      <rect x="205" y="100" width="30" height="40" rx="4" fill="#3498db"/>
+      <text x="195" y="125" text-anchor="end" fill="#333" font-size="13">Chronos-Small</text>
+      <text x="242" y="125" fill="#3498db" font-size="13" font-weight="bold">46M</text>
+
+      <!-- TimesFM: 200M -->
+      <rect x="205" y="160" width="72" height="40" rx="4" fill="#2ecc71"/>
+      <text x="195" y="185" text-anchor="end" fill="#333" font-size="13">TimesFM 2.5</text>
+      <text x="284" y="185" fill="#2ecc71" font-size="13" font-weight="bold">200M</text>
+
+      <!-- GPT-4: ~1,700,000M — bar goes off screen to show scale -->
+      <rect x="205" y="230" width="660" height="50" rx="4" fill="#e74c3c"/>
+      <!-- Jagged edge to show it's cut off -->
+      <polygon points="865,230 870,235 865,240 870,245 865,250 870,255 865,260 870,265 865,270 870,275 865,280 860,280 860,230" fill="#e74c3c"/>
+      <text x="195" y="262" text-anchor="end" fill="#333" font-size="13">GPT-4 (est.)</text>
+      <text x="540" y="262" text-anchor="middle" fill="white" font-size="18" font-weight="bold">~1,700,000M (1.7 Trillion)</text>
+
+      <!-- Scale note -->
+      <text x="450" y="320" text-anchor="middle" fill="#e74c3c" font-size="15" font-weight="bold">8,500x larger than TimesFM</text>
+    </svg>
+  </section>
+
+  <section>
+    <h3>The complexity of the task determines the model size</h3>
+    <div class="columns">
+      <div class="col">
+        <strong style="font-size:1.1em;">Language</strong>
+        <p class="medium">Must encode all human knowledge &mdash; vocabulary, grammar, facts, reasoning, common sense, nuance across millions of topics and languages. The space of possible text is astronomically large.</p>
+        <p class="medium">&rarr; Requires <strong>trillions</strong> of parameters</p>
+      </div>
+      <div class="col">
+        <strong style="font-size:1.1em;">Time Series</strong>
+        <p class="medium">Trends, seasonality, cycles, noise, level shifts, regime changes &mdash; these are <strong>mathematical patterns</strong>, not semantic ones. The structure is much more constrained.</p>
+        <p class="medium">&rarr; <strong>Hundreds of millions</strong> suffice for SOTA</p>
+      </div>
+    </div>
+    <blockquote class="fragment">
+      You don't need to "know" that Paris is in France to forecast energy demand.
+    </blockquote>
+    <p class="fragment" style="font-size:0.7em; color:#555;">Nuance: the field is young. Larger models are appearing (Time-MOE: 2.4B params) and it's an open question whether scaling up will help time series as much as it did for language. But for now, state-of-the-art runs on your laptop.</p>
+  </section>
+</section>
+
+<!-- ============================================================ -->
+<!-- 10. TAKEAWAYS -->
+<!-- ============================================================ -->
+<section>
+  <section>
+    <h2>Key Takeaways</h2>
+  </section>
+
+  <section>
+    <h3>Key Takeaways</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1em; margin:0.5em auto 0; width:100%;">
+
+      <div class="fragment" style="background:#fff5f5; border-radius:12px; padding:1em 1.2em; border-left:5px solid var(--accent); display:flex; flex-direction:column; justify-content:center;">
+        <strong style="font-size:0.95em; color:var(--accent);">Pre-train once, use everywhere</strong>
+        <p style="font-size:0.7em; color:#555; margin-top:0.3em;">The same paradigm shift that transformed NLP and vision has arrived for time series.</p>
+      </div>
+
+      <div class="fragment" style="background:#f0f7ff; border-radius:12px; padding:1em 1.2em; border-left:5px solid var(--blue); display:flex; flex-direction:column; justify-content:center;">
+        <strong style="font-size:0.95em; color:var(--blue);">Transformers are the backbone</strong>
+        <p style="font-size:0.7em; color:#555; margin-top:0.3em;">The same architecture behind ChatGPT, adapted for temporal data through patching and tokenization.</p>
+      </div>
+
+      <div class="fragment" style="background:#f0fff4; border-radius:12px; padding:1em 1.2em; border-left:5px solid var(--green); display:flex; flex-direction:column; justify-content:center;">
+        <strong style="font-size:0.95em; color:var(--green);">We're at an inflection point</strong>
+        <p style="font-size:0.7em; color:#555; margin-top:0.3em;">Chronos, TimesFM, Moirai, MOMENT &mdash; all released in 2024. <code>pip install</code> and go.</p>
+      </div>
+
+      <div class="fragment" style="background:#fff8f0; border-radius:12px; padding:1em 1.2em; border-left:5px solid var(--orange); display:flex; flex-direction:column; justify-content:center;">
+        <strong style="font-size:0.95em; color:var(--orange);">They won't replace domain expertise</strong>
+        <p style="font-size:0.7em; color:#555; margin-top:0.3em;">But they dramatically lower the bar for good-enough forecasts, especially on unfamiliar data.</p>
+      </div>
+
+    </div>
+
+    <div class="fragment" style="background:linear-gradient(135deg, #1e1e2e, #2d2b55); border-radius:12px; padding:0.7em 1.2em; margin-top:0.8em; text-align:center;">
+      <strong style="font-size:0.95em; color:#cdd6f4;">Best strategy today</strong>
+      <p style="font-size:0.7em; color:#a0a0b8; margin-top:0.3em;">Use foundation models as a zero-shot baseline. Compare against tuned models. Fine-tune if promising.</p>
+    </div>
+  </section>
+
+  <section>
+    <h3>What to try next</h3>
+    <div class="codeblock">
+      <span class="comment"># Install and try in 5 minutes</span><br>
+      pip install chronos-forecasting<br><br>
+      <span class="comment"># Or try Google's approach</span><br>
+      pip install timesfm<br><br>
+      <span class="comment"># Or the API route (no ML needed)</span><br>
+      pip install nixtla  <span class="comment"># TimeGPT</span>
+    </div>
+    <br>
+    <p style="font-size:0.8em; text-align:center;">All models on HuggingFace. All run on CPU. No GPU required.</p>
+  </section>
+
+  <section>
+    <h1>Thank you</h1>
+    <p style="font-size:0.8em; color:#888; margin-top:1em;">Questions?</p>
+  </section>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: true,
+  transition: 'slide',
+  width: 1280,
+  height: 720,
+  margin: 0.08,
+  center: true,
+});
+</script>
+</body>
+</html>
