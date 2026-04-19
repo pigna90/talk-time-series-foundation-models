@@ -286,6 +286,11 @@ st.set_page_config(page_title="Time Series Foundation Models", layout="wide")
 st.title("Time Series Foundation Models")
 st.caption("Interactive comparison — drag the sliders to explore")
 
+# Warm both dataset caches up-front so switching datasets is instant.
+with st.spinner("Loading datasets..."):
+    load_airpassengers()
+    load_etth1()
+
 # ---- Sidebar ----
 with st.sidebar:
     st.header("Dataset")
@@ -384,14 +389,59 @@ st.plotly_chart(fig, width="stretch")
 
 # ---- Metrics ----
 if results:
-    cols = st.columns(len(results))
-    for i, (name, (mean, _lo, _hi, color)) in enumerate(results.items()):
-        with cols[i]:
-            m = mae(y_test, mean)
-            r = rmse(y_test, mean)
-            st.markdown(f"**{name}**")
-            st.metric("MAE", f"{m:.2f}")
-            st.metric("RMSE", f"{r:.2f}")
-            if not cfg["has_negatives"]:
-                mp = mape(y_test, mean)
-                st.metric("MAPE", f"{mp:.1f}%")
+    st.markdown("### Leaderboard")
+    st.caption(
+        "**Lower is better** for every metric. "
+        "Models are ranked by MAE (the average forecast error). "
+        "🥇 is the overall winner; green cells mark the best value in each column."
+    )
+
+    metric_keys = ["MAE", "RMSE"]
+    if not cfg["has_negatives"]:
+        metric_keys.append("MAPE")
+
+    rows = []
+    for name, (mean, _lo, _hi, _color) in results.items():
+        row = {"Model": name, "MAE": mae(y_test, mean), "RMSE": rmse(y_test, mean)}
+        if "MAPE" in metric_keys:
+            row["MAPE"] = mape(y_test, mean)
+        rows.append(row)
+
+    df_m = pd.DataFrame(rows).sort_values("MAE").reset_index(drop=True)
+    medals = ["🥇", "🥈", "🥉"]
+    df_m.insert(0, "Rank", [medals[i] if i < 3 else f"#{i + 1}" for i in range(len(df_m))])
+
+    def highlight_best(col):
+        best = col.min()
+        return [
+            "background-color: #d5f5e3; font-weight: 700; color: #1e8449;" if v == best else ""
+            for v in col
+        ]
+
+    fmt = {"MAE": "{:.2f}", "RMSE": "{:.2f}"}
+    if "MAPE" in metric_keys:
+        fmt["MAPE"] = "{:.1f}%"
+
+    styled = df_m.style.apply(highlight_best, subset=metric_keys).format(fmt)
+    st.dataframe(styled, width="stretch", hide_index=True)
+
+    # One-line winner summary
+    if len(df_m) > 1:
+        winner = df_m.iloc[0]
+        worst = df_m.iloc[-1]
+        gap_pct = (worst["MAE"] - winner["MAE"]) / worst["MAE"] * 100
+        st.success(
+            f"🥇 **{winner['Model']}** wins — "
+            f"{gap_pct:.0f}% lower MAE than {worst['Model']} "
+            f"({winner['MAE']:.2f} vs {worst['MAE']:.2f})."
+        )
+
+    with st.expander("What do these metrics mean?"):
+        st.markdown(
+            "- **MAE** (Mean Absolute Error): average distance between prediction and truth, "
+            "in the same units as the data. Easy to read: *\"off by 10 passengers on average\"*.\n"
+            "- **RMSE** (Root Mean Squared Error): same units, but penalises big misses more. "
+            "When RMSE is much higher than MAE, the model had a few large errors.\n"
+            "- **MAPE** (Mean Absolute Percentage Error): error as a % of the actual value. "
+            "Scale-free, but undefined near zero (hidden for datasets that can be negative)."
+        )
