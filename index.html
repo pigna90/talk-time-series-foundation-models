@@ -1734,11 +1734,42 @@ mean, q = tfm.<span class="fn">forecast</span>(horizon=<span class="str">24</spa
     <p style="font-size:0.5em; color:#888; margin-top:0.4em; text-align:center;">Foundation models need no frequency, season length, or parameter tuning &mdash; just raw data.</p>
   </section>
 
+  <!-- AirPassengers: shrink the training window -->
   <section>
-    <h3 style="text-align:center;">Let's switch to the demo...</h3>
-    <p style="text-align:center; font-size:0.75em; color:#888; margin-top:1em;">
-      We'll run all three approaches live on the same data, see the forecasts, and compare error metrics side by side. Everything runs on CPU &mdash; no GPU needed.
-    </p>
+    <h3 style="margin-bottom:0.2em;">AirPassengers &mdash; full context (120 pts)</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">ARIMA is tuned for this: log transform + <code>season_length=12</code>. It wins.</p>
+    <img src="assets/AirPassengers_ctx120.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  </section>
+
+  <section>
+    <h3 style="margin-bottom:0.2em;">AirPassengers &mdash; shrink the window to 48 pts</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">Less history means ARIMA has less to fit. The gap narrows.</p>
+    <img src="assets/AirPassengers_ctx48.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  </section>
+
+  <section>
+    <h3 style="margin-bottom:0.2em;">AirPassengers &mdash; just 24 pts of context</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">ARIMA drops to last. <strong class="blue">Chronos</strong> wins zero-shot &mdash; the FM's prior on seasonal data does more than ARIMA can with two years of history.</p>
+    <img src="assets/AirPassengers_ctx24.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  </section>
+
+  <!-- ETTh1: a dataset ARIMA has never seen -->
+  <section>
+    <h3 style="margin-bottom:0.2em;">ETTh1 &mdash; messy, real-world hourly data (ctx = 2000)</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">Even with 2000 points of history, ARIMA only learns the local mean. <strong class="blue">Chronos</strong> halves the error.</p>
+    <img src="assets/ETTh1_ctx2000.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  </section>
+
+  <section>
+    <h3 style="margin-bottom:0.2em;">ETTh1 &mdash; shrink the window to 500 pts</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">FMs barely flinch (0.13 MAE). ARIMA still ~3&times; worse.</p>
+    <img src="assets/ETTh1_ctx500.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+  </section>
+
+  <section>
+    <h3 style="margin-bottom:0.2em;">ETTh1 &mdash; just 96 pts (4 days) of context</h3>
+    <p style="font-size:0.6em; color:#666; margin:0 0 0.3em 0;">Forecasting a week from 4 days of history. FMs still produce structured predictions with the same 0.13 MAE &mdash; zero-shot, unchanged.</p>
+    <img src="assets/ETTh1_ctx96.png" style="max-width:92%; max-height:72vh; border-radius:6px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
   </section>
 </section>
 
