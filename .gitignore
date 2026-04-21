@@ -20,3 +20,9 @@ data/
 
 # Copyrighted material
 *.pdf
+
+# PowerPoint exports (generated)
+*.pptx
+
+# Intermediate PDF-page rasters from build_pptx.py
+assets/_pdf_pages/
